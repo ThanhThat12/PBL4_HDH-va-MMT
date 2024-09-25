@@ -1,0 +1,34 @@
+Chương 1: Internet và Web
+
+ -Mạng máy tính (network) là bao gồm các máy tính được nối với nhau sao cho chúng có thể 
+dùng chung dữ liệu và các thiết bị.
+ -Có thể dùng chung các loại tài nguyên :
+	_ Dữ liệu
+	_ Thông điệp 
+	_ Hình ảnh
+	_ Máy fax
+	_ Modem
+	_ Máy in
+	_ Các tài nguyên phần cứng khác
+ _ Điều kiện kết nối và trao đổi dữ liệu:
+	-Môi trường truyền :
+	    + Định hướng(hữu tuyến) cáp song hành, cắp xoắn đôi, cáp đồng trục...
+	    + Không định hướng(vô tuyến) viba mặt đất, viba vệ tinh, sóng radio, vô tuyến tế bào...
+	-Tập các giao thức	
+
+_ Phân loại :
+	- Căn cứ vào phạm vi địa lý : LAN, MAN, WAN, GAN, Intranet, Internet.
+	- Căn cứ vào kiến trúc mạng : 
+		+ Hình trạng của mạng (Network Topology) mạng hình sao, mạng tuyến tính bus...
+		+ Giao thức mạng (protocol) : mạng TCP/IP, mạng netBiOs...
+	- Căn cứ vào cách thức chuyển dữ liệu : 
+		+ Mạng chuyển mạch kênh (mạch điện)
+		+ Mạng chuyển mạch thông báo
+		+ Mạng chuyển mạch gói
+	- Căn cứ vào hệ điều hành mạng : window(mạng window NT), Unix, Linux, Uban ....
+		ngoài ra còn có mạng Client/Sever, peer-do-peer,.....
+_ Bộ giao thức TCP/IP :
+		TCP, UDP --> tầng 4
+		IP, ICMP --> tầng 3
+		ARP,RARP --> tầng 2
+_ NetID = Đchi IP AND SUBNETMASK
