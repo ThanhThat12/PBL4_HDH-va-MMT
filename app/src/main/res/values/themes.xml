@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Chọn một trong các chủ đề dưới đây, không nên định nghĩa cả hai -->
+    <style name="Theme.MyApplication" parent="Theme.AppCompat.Light.NoActionBar">
+    </style>
+
+    <!-- Xóa hoặc giữ lại tùy theo nhu cầu -->
+    <!-- <style name="Theme.MyApplication.Material" parent="android:Theme.Material.Light.NoActionBar" /> -->
+</resources>
