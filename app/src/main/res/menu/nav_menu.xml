@@ -1,0 +1,38 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Mục hiển thị tên ứng dụng (chỉ để hiển thị, không có hành động khi nhấn) -->
+    <item
+        android:id="@+id/nav_app_name"
+        android:title="Schedule App"
+        android:enabled="false" />
+
+    <!-- Dòng phân cách (tạo khoảng trống thay vì gạch ngang) -->
+    <item
+        android:title="───────────────────────────────────────────────"
+        android:enabled="false" />
+
+    <!-- Các mục khác trong menu -->
+    <item
+        android:id="@+id/nav_calendar"
+        android:title="Lịch" />
+
+    <!-- Dòng phân cách -->
+    <item
+        android:title="────────────────"
+        android:enabled="false" />
+
+    <item
+        android:id="@+id/nav_contacts"
+        android:title="Liên hệ" />
+
+    <!-- Dòng phân cách -->
+    <item
+        android:title="────────────────"
+        android:enabled="false" />
+
+    <!-- Mục thoát ứng dụng với biểu tượng dấu X -->
+    <item
+        android:id="@+id/nav_exit"
+        android:title="Thoát"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel" />
+</menu>

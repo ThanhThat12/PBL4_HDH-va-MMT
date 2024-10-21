@@ -1,84 +1,159 @@
+from flask import Flask, request, jsonify
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup
+from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
+from bs4 import BeautifulSoup
 
-# Cấu hình trình điều khiển Chrome
-chrome_options = Options()
-chrome_options.add_argument("--headless")  # Chạy Chrome ở chế độ headless (không hiển thị cửa sổ trình duyệt)
-service = Service(ChromeDriverManager().install())
+# Khởi tạo Flask app
+app = Flask(__name__)
 
-# Khởi tạo trình duyệt Chrome với dịch vụ ChromeDriver
-driver = webdriver.Chrome(service=service, options=chrome_options)
+# Hàm đăng nhập và trả về trình duyệt đã đăng nhập thành công
+def login_to_website(username, password):
+    chrome_options = Options()
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    service = Service(ChromeDriverManager().install())
 
-# Hàm để phân tích các thông báo từ một tab
-def extract_announcements(soup, tab_id):
-    tab_content = soup.find(id=tab_id)
-    if tab_content:
-        announcements = tab_content.select("div.tbBox")
-        if not announcements:
-            print(f"Không tìm thấy thông báo nào trong tab với id: {tab_id}")
-        for announcement in announcements:
-            caption = announcement.select_one("div.tbBoxCaption")
-            content = announcement.select_one("div.tbBoxContent")
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
-            if caption and content:
-                spans = caption.find_all("span")
-                if len(spans) >= 2:
-                    date = spans[0].text.strip()
-                    title = spans[1].text.strip()
-                else:
-                    date = "No date"
-                    title = "No title"
+    try:
+        driver.get('http://sv.dut.udn.vn/PageDangNhap.aspx')
 
-                # Xử lý các thẻ <a> trong phần nội dung
-                for a_tag in content.find_all("a"):
-                    href = a_tag.get("href", "")
-                    a_tag.string = f"{a_tag.text.strip()} ({href})"
+        wait = WebDriverWait(driver, 10)
+        username_field = wait.until(EC.presence_of_element_located((By.ID, "DN_txtAcc")))
+        password_field = wait.until(EC.presence_of_element_located((By.ID, "DN_txtPass")))
 
-                announcement_content = content.text.strip()
+        username_field.send_keys(username)
+        password_field.send_keys(password)
 
-                #print(f"{tab_id}")
-                print(f"Ngày: {date}")
-                print(f"Tiêu đề: {title}")
-                print(f"Nội dung: {announcement_content}")
-                print("-" * 40)
-    else:
-        print(f"Không tìm thấy tab với id: {tab_id}")
+        login_button = wait.until(EC.element_to_be_clickable((By.ID, "QLTH_btnLogin")))
+        login_button.click()
 
+        # Đợi cho trang tải xong và kiểm tra URL
+        wait.until(EC.url_changes('http://sv.dut.udn.vn/PageDangNhap.aspx'))
 
-try:
-    # Tải trang web
-    url = 'http://sv.dut.udn.vn/'
-    driver.get(url)
+        # Kiểm tra nếu URL đã thay đổi thành URL trang chính
+        if driver.current_url == 'http://sv.dut.udn.vn/PageCaNhan.aspx':  # Thay đổi thành URL trang chính
+            return driver
+        else:
+            raise Exception("Đăng nhập không thành công!")
+    except Exception as e:
+        driver.quit()
+        raise Exception(f"Lỗi khi đăng nhập: {str(e)}")
 
-    # Tạo đối tượng WebDriverWait
-    wait = WebDriverWait(driver, 10)  # Chờ tối đa 10 giây
+# API đăng nhập
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
 
-    # Duyệt qua từng tab và nhấp vào chúng
-    tab_ids = ["tabs_PubTB-divT0", "tabs_PubTB-divT1"]
-    
-    for tab_id in tab_ids:
-        # Tìm tab và nhấp vào nó
-        tab_link = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, f'li[aria-controls="{tab_id}"] a')))
-        tab_link.click()
-        print("-" * 50)
-        print(f"Nhấp vào tab với id: {tab_id}")
-        print("-" * 50)
+    try:
+        # Đăng nhập vào trang và trả về trình duyệt đã đăng nhập
+        driver = login_to_website(username, password)
 
-        # Chờ nội dung tab được hiển thị đầy đủ
-        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, f'#{tab_id} div.tbBox')))
+        # Trả về thông tin đăng nhập thành công
+        return jsonify({"success": True, "username": username}), 200
 
-        # Phân tích cú pháp HTML bằng BeautifulSoup
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
 
-        # Gọi hàm để xử lý các thông báo từ tab hiện tại
-        extract_announcements(soup, tab_id)
+    finally:
+        driver.quit()  # Đóng trình duyệt sau khi hoàn thành
 
-finally:
-    # Đóng trình duyệt
-    driver.quit()
+# API lấy lịch học trong ngày
+@app.route('/get_schedule', methods=['POST'])
+def get_schedule():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    try:
+        driver = login_to_website(username, password)
+
+        wait = WebDriverWait(driver, 10)
+        menu_personal = wait.until(EC.visibility_of_element_located((By.ID, "lPaCANHAN")))
+        actions = ActionChains(driver)
+        actions.move_to_element(menu_personal).perform()
+
+        schedule_link = wait.until(EC.element_to_be_clickable((By.ID, "lCoCANHAN03")))
+        schedule_link.click()
+
+        wait.until(EC.presence_of_element_located((By.ID, "LHTN_divList")))
+
+        html_content = driver.find_element(By.ID, 'LHTN_divList').get_attribute('outerHTML')
+
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        table = soup.find('table')
+        schedule_data = []
+
+        if table:
+            rows = table.find_all('tr')
+            for row in rows:
+                cells = row.find_all('td')
+                row_data = [cell.get_text(strip=True) for cell in cells]
+                schedule_data.append(row_data)
+        else:
+            return jsonify({"error": "Không tìm thấy bảng trong HTML."})
+
+        return jsonify({"username": username, "schedule": schedule_data})
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+    finally:
+        driver.quit()
+
+# API lấy lịch khảo sát ý kiến
+@app.route('/get_survey_schedule', methods=['POST'])
+def get_survey_schedule():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    try:
+        driver = login_to_website(username, password)
+
+        wait = WebDriverWait(driver, 10)
+        survey_menu = wait.until(EC.visibility_of_element_located((By.ID, "lPaCANHAN")))
+        actions = ActionChains(driver)
+        actions.move_to_element(survey_menu).perform()
+
+        survey_link = wait.until(EC.element_to_be_clickable((By.ID, "lCoCANHAN04")))
+        survey_link.click()
+
+        wait.until(EC.presence_of_element_located((By.ID, "TTKB_GridInfo")))
+
+        html_content = driver.find_element(By.ID, 'TTKB_GridInfo').get_attribute('outerHTML')
+
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        table = soup.find('table')
+        survey_data = []
+
+        if table:
+            rows = table.find_all('tr')
+            for row in rows:
+                cells = row.find_all('td')
+                row_data = [cell.get_text(strip=True) for cell in cells]
+                survey_data.append(row_data)
+        else:
+            return jsonify({"error": "Không tìm thấy bảng trong HTML."})
+
+        return jsonify({"username": username, "survey_schedule": survey_data})
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+    finally:
+        driver.quit()
+
+# Chạy ứng dụng Flask
+if __name__ == '__main__':
+    app.run(debug=True)
