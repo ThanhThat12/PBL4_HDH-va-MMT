@@ -17,27 +17,35 @@ app = Flask(__name__)
 # Global driver variable for re-use
 driver = None
 
-# Function to create and reuse a Selenium WebDriver
+# Function to create a Selenium WebDriver
 def create_driver():
-    global driver
-    if driver is None:
-        chrome_options = Options()
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--no-sandbox")
-        #chrome_options.add_argument("--headless")  # Uncomment for headless mode
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-    return driver
+    chrome_options = Options()
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    #chrome_options.add_argument("--headless")  # Uncomment for headless mode if needed
+    service = Service(ChromeDriverManager().install())
+    return webdriver.Chrome(service=service, options=chrome_options)
 
 # Function to log in to the website and return the driver after successful login
 def login_to_website(username, password):
-    driver = create_driver()
+    global driver
+    if driver is not None:
+        try:
+            driver.quit()  # Quit existing driver if it's still running
+        except Exception as e:
+            print(f"Error when quitting the driver: {str(e)}")
+
+    driver = create_driver()  # Create a new driver instance
+
     try:
         driver.get('http://sv.dut.udn.vn/PageDangNhap.aspx')
 
         wait = WebDriverWait(driver, 10)
         username_field = wait.until(EC.presence_of_element_located((By.ID, "DN_txtAcc")))
         password_field = wait.until(EC.presence_of_element_located((By.ID, "DN_txtPass")))
+
+        username_field.clear()  # Clear any pre-filled data
+        password_field.clear()  # Clear any pre-filled data
 
         username_field.send_keys(username)
         password_field.send_keys(password)
@@ -49,13 +57,23 @@ def login_to_website(username, password):
         wait.until(EC.url_changes('http://sv.dut.udn.vn/PageDangNhap.aspx'))
 
         if driver.current_url == 'http://sv.dut.udn.vn/PageCaNhan.aspx':  # URL after successful login
+            print("Login successful!")
             return driver
         else:
-            raise Exception("Login unsuccessful!")
+            raise Exception("Login unsuccessful! URL mismatch.")
+
     except Exception as e:
-        driver.quit()
+        print(f"Login error: {str(e)}")
         raise Exception(f"Error during login: {str(e)}")
 
+# Example usage
+try:
+    driver = login_to_website("your_username", "your_password")
+except Exception as e:
+    print(f"Failed to log in: {e}")
+finally:
+    if driver is not None:
+        driver.quit()  # Ensure the driver is closed after usage
 # Function to extract announcements from a tab
 def extract_announcements(soup, tab_id):
     tab_content = soup.find(id=tab_id)

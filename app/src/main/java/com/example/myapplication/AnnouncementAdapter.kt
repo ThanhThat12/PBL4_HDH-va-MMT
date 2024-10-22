@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
+import android.text.method.LinkMovementMethod
+import android.text.util.Linkify
 
 class AnnouncementAdapter(private val announcements: List<Announcement>) : RecyclerView.Adapter<AnnouncementAdapter.ViewHolder>() {
 
@@ -25,6 +27,10 @@ class AnnouncementAdapter(private val announcements: List<Announcement>) : Recyc
         holder.contentTextView.text = announcement.content
         holder.dateTextView.text = announcement.date
         holder.titleTextView.text = announcement.title
+
+        // Làm các liên kết có thể nhấp
+        holder.contentTextView.autoLinkMask = Linkify.WEB_URLS
+        holder.contentTextView.movementMethod = LinkMovementMethod.getInstance()
 
     }
 
