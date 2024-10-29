@@ -30,6 +30,9 @@ class MainActivity : AppCompatActivity() {
     private var announcements: MutableList<Announcement> = mutableListOf()
     private lateinit var drawerLayout: DrawerLayout
 
+    // Thêm biến để theo dõi nút đang được chọn
+    private var selectedButtonId: Int = R.id.buttonApi1 // Mặc định chọn buttonApi1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -107,15 +110,36 @@ class MainActivity : AppCompatActivity() {
         val buttonApi1: Button = findViewById(R.id.buttonApi1)
         val buttonApi2: Button = findViewById(R.id.buttonApi2)
 
-        // Gọi API cho tab 0
+        // Thiết lập sự kiện click cho buttonApi1
         buttonApi1.setOnClickListener {
             getAnnouncements(apiService.getAnnouncementsTab0())
+            updateButtonSelection(buttonApi1.id) // Cập nhật trạng thái nút
         }
 
-        // Gọi API cho tab 1
+        // Thiết lập sự kiện click cho buttonApi2
         buttonApi2.setOnClickListener {
             getAnnouncements(apiService.getAnnouncementsTab1())
+            updateButtonSelection(buttonApi2.id) // Cập nhật trạng thái nút
         }
+
+        // Cập nhật màu sắc cho các nút ban đầu
+        updateButtonSelection(selectedButtonId)
+    }
+
+    // Phương thức cập nhật màu sắc cho các nút
+    private fun updateButtonSelection(selectedId: Int) {
+        val buttonApi1: Button = findViewById(R.id.buttonApi1)
+        val buttonApi2: Button = findViewById(R.id.buttonApi2)
+
+        // Cập nhật màu cho nút được chọn
+        if (selectedId == buttonApi1.id) {
+            buttonApi1.setTextColor(getColor(R.color.colorAccent)) // Màu xanh (thay đổi theo ý muốn)
+            buttonApi2.setTextColor(getColor(android.R.color.black)) // Màu đen
+        } else {
+            buttonApi2.setTextColor(getColor(R.color.colorAccent)) // Màu xanh
+            buttonApi1.setTextColor(getColor(android.R.color.black)) // Màu đen
+        }
+        selectedButtonId = selectedId // Cập nhật trạng thái
     }
 
     // Phương thức chung để xử lý kết quả API và cập nhật RecyclerView
@@ -124,7 +148,7 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call<List<Announcement>>, response: Response<List<Announcement>>) {
                 if (response.isSuccessful) {
                     response.body()?.let {
-                         // Xóa danh sách cũ
+                        // Xóa danh sách cũ
                         announcements.clear()
                         announcements.addAll(it) // Thêm dữ liệu mới
                         announcementAdapter.notifyDataSetChanged() // Cập nhật adapter

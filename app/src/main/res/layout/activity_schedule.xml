@@ -7,20 +7,20 @@
 
     <Button
         android:id="@+id/buttonSchedule"
-        android:layout_width="wrap_content"
+        android:layout_width="398dp"
         android:layout_height="wrap_content"
-        android:text="Hiển thị Lịch Học"/>
+        android:text="Hiển thị Lịch Học" />
 
     <Button
         android:id="@+id/buttonSurveySchedule"
-        android:layout_width="wrap_content"
+        android:layout_width="411dp"
         android:layout_height="wrap_content"
-        android:text="Hiển thị Khảo Sát Ý Kiến"/>
+        android:text="Hiển thị Khảo Sát Ý Kiến" />
 
     <TextView
         android:id="@+id/textViewData"
         android:layout_width="match_parent"
-        android:layout_height="690dp"
+        android:layout_height="2000dp"
         android:paddingTop="16dp"
         android:textSize="16sp" />
 </LinearLayout>
