@@ -1,5 +1,5 @@
-from flask import Flask, jsonify, request
-from selenium import webdriver
+from flask import Flask, jsonify, request # type: ignore
+from selenium import webdriver # type: ignore
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options

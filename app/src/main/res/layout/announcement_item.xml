@@ -2,7 +2,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@drawable/item_border"> <!-- Thêm viền ở đây -->
 
     <TextView
         android:id="@+id/dateTextView"
@@ -21,5 +22,5 @@
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:autoLink="web"
-    android:linksClickable="true" /> <!-- Đảm bảo các liên kết có thể nhấp -->
+        android:linksClickable="true" /> <!-- Đảm bảo các liên kết có thể nhấp -->
 </LinearLayout>
