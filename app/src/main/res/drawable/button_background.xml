@@ -1,0 +1,4 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true" android:drawable="@drawable/button_pressed" /> <!-- Hình nền khi nhấn -->
+    <item android:drawable="@drawable/button_normal" /> <!-- Hình nền bình thường -->
+</selector>

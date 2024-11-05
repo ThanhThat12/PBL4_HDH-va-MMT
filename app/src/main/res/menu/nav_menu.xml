@@ -1,12 +1,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <!-- Application Name (Display Only) -->
+    <!-- Tên ứng dụng (Chỉ để hiển thị) -->
     <item
         android:id="@+id/nav_app_name"
         android:title="Schedule App"
         android:enabled="false"
         android:icon="@drawable/home"
-    android:titleTextAppearance="?android:attr/textAppearanceMedium" />
+        android:titleTextAppearance="?android:attr/textAppearanceMedium" />
 
     <!-- Divider -->
     <item
@@ -15,11 +14,11 @@
         android:enabled="false"
         android:icon="@android:drawable/divider_horizontal_bright" />
 
-    <!-- Calendar Item -->
+    <!-- Lịch -->
     <item
         android:id="@+id/nav_calendar"
         android:title="Lịch"
-        android:icon="@drawable/img" /> <!-- Add a calendar icon here -->
+        android:icon="@drawable/img" />
 
     <!-- Divider -->
     <item
@@ -28,11 +27,11 @@
         android:enabled="false"
         android:icon="@android:drawable/divider_horizontal_bright" />
 
-    <!-- Contacts Item -->
+    <!-- Liên hệ -->
     <item
         android:id="@+id/nav_contacts"
         android:title="Liên hệ"
-        android:icon="@drawable/img" /> <!-- Add a contacts icon here -->
+        android:icon="@drawable/img" />
 
     <!-- Divider -->
     <item
@@ -41,7 +40,7 @@
         android:enabled="false"
         android:icon="@android:drawable/divider_horizontal_bright" />
 
-    <!-- Exit Item with X Icon -->
+    <!-- Thoát -->
     <item
         android:id="@+id/nav_exit"
         android:title="Thoát"

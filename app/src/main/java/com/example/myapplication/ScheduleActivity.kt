@@ -1,53 +1,97 @@
 package com.example.myapplication
 
 import android.os.Bundle
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
-import org.json.JSONObject
-import java.io.Serializable
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.core.view.GravityCompat
+import com.google.android.material.navigation.NavigationView
 
 class ScheduleActivity : AppCompatActivity() {
 
-    // Thay đổi kiểu dữ liệu để nhận LoginResponse
     private lateinit var loginResponse: LoginResponse
     private lateinit var textViewData: TextView
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var toggle: ActionBarDrawerToggle
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_schedule)
 
+        // Khởi tạo các view
+        drawerLayout = findViewById(R.id.drawer_layout)
+        textViewData = findViewById(R.id.textViewData)
+
+        // Thiết lập ActionBarDrawerToggle
+        toggle = ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        // Thiết lập toolbar
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         // Nhận dữ liệu từ Intent
         val dataString = intent.getSerializableExtra("data") as? LoginResponse
         if (dataString != null) {
             loginResponse = dataString
+        } else {
+            textViewData.text = "No data available"
+            return
         }
 
-        textViewData = findViewById(R.id.textViewData)
-
-        // Xử lý nút Hiển thị Lịch Học
-        val buttonSchedule: Button = findViewById(R.id.buttonSchedule)
-        buttonSchedule.setOnClickListener {
+        // Thiết lập nút nhấn
+        findViewById<Button>(R.id.buttonSchedule).setOnClickListener {
             displayScheduleData()
         }
 
-        // Xử lý nút Hiển thị Khảo Sát Ý Kiến
-        val buttonSurveySchedule: Button = findViewById(R.id.buttonSurveySchedule)
-        buttonSurveySchedule.setOnClickListener {
+        findViewById<Button>(R.id.buttonSurveySchedule).setOnClickListener {
             displaySurveyScheduleData()
+        }
+
+        findViewById<Button>(R.id.buttonMenu).setOnClickListener {
+            // Mở hoặc đóng drawer
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START)
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START)
+            }
+        }
+
+        // Xử lý sự kiện nhấp vào menu điều hướng
+        val navigationView: NavigationView = findViewById(R.id.nav_view)
+        navigationView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_calendar -> {
+                    // Xử lý nhấp vào "Lịch"
+                    displayScheduleData()
+                }
+                R.id.nav_contacts -> {
+                    // Xử lý nhấp vào "Liên hệ"
+                    // Có thể mở Activity khác nếu cần
+                }
+                R.id.nav_exit -> {
+                    // Thoát ứng dụng
+                    finish()
+                }
+            }
+            drawerLayout.closeDrawer(GravityCompat.START) // Đóng drawer sau khi chọn
+            true
         }
     }
 
     private fun displayScheduleData() {
-        val schedule = loginResponse.schedule
+        val schedule = loginResponse.schedule ?: return // Xử lý an toàn null
         val stringBuilder = StringBuilder()
 
-        // Duyệt qua từng mục trong lịch học
-        schedule?.forEach { item ->
+        // Lặp qua lịch
+        schedule.forEach { item ->
             if (item.isNotEmpty()) {
-                stringBuilder.append("Môn học: ${item[2]}\n") // Tên môn
-                stringBuilder.append("Giảng viên: ${item[3]}\n") // Giảng viên
-                stringBuilder.append("Thời gian: ${item[5]}\n") // Thời gian
+                stringBuilder.append("Môn học: ${item.getOrNull(2) ?: "Không có thông tin"}\n") // Tên môn
+                stringBuilder.append("Giảng viên: ${item.getOrNull(3) ?: "Không có thông tin"}\n") // Giảng viên
+                stringBuilder.append("Thời gian: ${item.getOrNull(5) ?: "Không có thông tin"}\n") // Thời gian
                 stringBuilder.append("\n")
             }
         }
@@ -56,24 +100,15 @@ class ScheduleActivity : AppCompatActivity() {
     }
 
     private fun displaySurveyScheduleData() {
-        val surveySchedule = loginResponse.survey_schedule
+        val surveySchedule = loginResponse.survey_schedule ?: return // Xử lý an toàn null
         val stringBuilder = StringBuilder()
 
-        // Duyệt qua từng mục trong lịch khảo sát
-        surveySchedule?.forEach { item ->
+        // Lặp qua lịch khảo sát
+        surveySchedule.forEach { item ->
             if (item.isNotEmpty()) {
-                stringBuilder.append("Môn học: ${item[2]}\n") // Tên môn
-                // Kiểm tra xem chỉ số 6 và 7 có hợp lệ không
-                if (item.size > 6) {
-                    stringBuilder.append("Giảng viên: ${item[6]}\n") // Giảng viên
-                } else {
-                    stringBuilder.append("Giảng viên: Không có thông tin\n")
-                }
-                if (item.size > 7) {
-                    stringBuilder.append("Thời gian: ${item[7]}\n") // Thời gian
-                } else {
-                    stringBuilder.append("Thời gian: Không có thông tin\n")
-                }
+                stringBuilder.append("Môn học: ${item.getOrNull(2) ?: "Không có thông tin"}\n") // Tên môn
+                stringBuilder.append("Giảng viên: ${item.getOrNull(6) ?: "Không có thông tin"}\n") // Giảng viên
+                stringBuilder.append("Thời gian: ${item.getOrNull(7) ?: "Không có thông tin"}\n") // Thời gian
                 stringBuilder.append("\n")
             }
         }
@@ -81,6 +116,12 @@ class ScheduleActivity : AppCompatActivity() {
         textViewData.text = stringBuilder.toString()
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Xử lý nhấp chuột vào ActionBarToggle
+        return if (toggle.onOptionsItemSelected(item)) {
+            true
+        } else {
+            super.onOptionsItemSelected(item)
+        }
+    }
 }
-
-

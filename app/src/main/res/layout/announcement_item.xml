@@ -3,18 +3,24 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@drawable/item_border"> <!-- Thêm viền ở đây -->
+    android:background="@drawable/item_border"
+    android:layout_marginBottom="8dp">
 
     <TextView
         android:id="@+id/dateTextView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"/>
 
     <TextView
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:textColor="@android:color/black"/>
 
     <TextView
         android:id="@+id/contentTextView"
@@ -22,5 +28,7 @@
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:autoLink="web"
-        android:linksClickable="true" /> <!-- Đảm bảo các liên kết có thể nhấp -->
+        android:linksClickable="true"
+        android:textSize="15sp"
+        android:textColor="@android:color/black"/>
 </LinearLayout>
