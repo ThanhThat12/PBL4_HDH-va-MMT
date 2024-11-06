@@ -8,18 +8,13 @@ import java.io.Serializable
 
 // Đối tượng dữ liệu gửi lên API
 data class LoginRequest(val username: String, val password: String)
-
+data class LoginResponse(val status: String, val error: String? = null)
 // Thêm lớp LoginResponse nếu chưa có
-data class LoginResponse(
-    val success: Boolean,
-    val username: String,
-    val schedule: List<List<String>>?,
-    val survey_schedule: List<List<String>>?
-) : Serializable
+
 
 interface ApiService {
-    @POST("/get_all_data") // Endpoint để đăng nhập và lấy dữ liệu
-    fun login(@Body loginRequest: LoginRequest): Call<LoginResponse>
+    @POST("/login") // Endpoint để đăng nhập và lấy dữ liệu
+    fun login(@Body request: LoginRequest): Call<LoginResponse>
 
     @GET("/tab1") // Thay đổi đường dẫn đến API của bạn
     fun getAnnouncementsTab1(): Call<List<Announcement>>

@@ -29,7 +29,7 @@
                 android:id="@+id/buttonMenu"
                 android:layout_width="108dp"
                 android:layout_height="53dp"
-                android:background="@color/textColor"
+                android:background="@color/black"
                 android:drawableLeft="@drawable/menu"
                 android:drawablePadding="-10dp"
                 android:paddingStart="0dp"

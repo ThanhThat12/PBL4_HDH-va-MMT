@@ -21,14 +21,18 @@ class LoginActivity : AppCompatActivity() {
             val username = findViewById<EditText>(R.id.editTextUsername).text.toString()
             val password = findViewById<EditText>(R.id.editTextPassword).text.toString()
 
-            // Gọi API đăng nhập
-            login(username, password)
+            // Kiểm tra xem người dùng đã nhập đủ tài khoản và mật khẩu hay chưa
+            if (username.isNotEmpty() && password.isNotEmpty()) {
+                // Gọi API đăng nhập
+                login(username, password)
+            } else {
+                Toast.makeText(this, "Vui lòng nhập tài khoản và mật khẩu", Toast.LENGTH_SHORT).show()
+            }
         }
 
         // Nút Trở Lại
         val backButton: Button = findViewById(R.id.buttonBack)
         backButton.setOnClickListener {
-            // Kết thúc activity hiện tại và quay lại activity trước đó
             finish()
         }
     }
@@ -40,14 +44,13 @@ class LoginActivity : AppCompatActivity() {
         // Gọi API thông qua RetrofitClient
         RetrofitClient.instance.login(loginRequest).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-                if (response.isSuccessful && response.body()?.success == true) {
+                if (response.isSuccessful && response.body()?.status == "success") {
                     // Đăng nhập thành công, chuyển sang ScheduleActivity
                     val intent = Intent(this@LoginActivity, ScheduleActivity::class.java)
-                    intent.putExtra("data", response.body()) // Chuyển dữ liệu
                     startActivity(intent)
                     finish()
                 } else {
-                    // Xử lý khi đăng nhập không thành công
+                    // Thông báo khi đăng nhập không thành công
                     Toast.makeText(this@LoginActivity, "Đăng nhập thất bại", Toast.LENGTH_SHORT).show()
                 }
             }

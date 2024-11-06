@@ -1,248 +1,339 @@
-from flask import Flask, jsonify, request # type: ignore
-from selenium import webdriver # type: ignore
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
+from flask import Flask, request, jsonify
+import requests
 from bs4 import BeautifulSoup
-from webdriver_manager.chrome import ChromeDriverManager
-import threading
 import time
-from selenium.common.exceptions import WebDriverException
+from datetime import datetime
 
 app = Flask(__name__)
 
-# Global driver variable for re-use
-driver = None
 
-# Function to create and reuse a Selenium WebDriver
-def create_driver():
-    options = webdriver.ChromeOptions()
-    # options.add_argument("--headless")  # Optional: Run in headless mode
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+def extract_announcements(html):
+    soup = BeautifulSoup(html, "html.parser")
+    announcements = []
+    seen_announcements = set()  # Sử dụng tập hợp để lưu trữ các thông báo đã thấy
 
-driver = create_driver()
+    for announcement_div in soup.find_all(class_="tbBox"):
+        date_element = announcement_div.select_one("div.tbBoxCaption b > span")
+        date = date_element.get_text(strip=True).replace(":", "") if date_element else None
 
-def is_logged_in(driver):
-    try:
-        return driver.current_url == 'http://sv.dut.udn.vn/PageCaNhan.aspx'
-    except Exception as e:
-        print(f"Error checking login status: {str(e)}")
-        return False
+        # Lấy trường title
+        span_elements = announcement_div.select("div.tbBoxCaption span")
+        title = span_elements[1].get_text(strip=True) if len(span_elements) > 1 else None
 
-# Function to quit and restart the driver
-def restart_driver():
-    global driver
-    if driver is not None:
-        try:
-            driver.quit()  # Close existing session
-        except Exception as e:
-            print(f"Error when quitting the driver: {str(e)}")
-    driver = create_driver()  # Recreate the driver
+        # Lấy trường content
+        content_element = announcement_div.select_one("div.tbBoxContent")
+        content = str(content_element) if content_element else None
 
-# Function to log in to the website
-def login_to_website(username, password):
-    global driver
-    driver = create_driver()  # Ensure driver is created
+        # Kiểm tra và thêm thông báo mới nếu chưa có trong danh sách
+        if (date, title) not in seen_announcements:
+            announcements.append({
+                "date": date,
+                "title": title,
+                "content": content
+            })
+            seen_announcements.add((date, title))  # Thêm cặp date-title vào tập đã thấy
 
-    try:
-        driver.get('http://sv.dut.udn.vn/PageDangNhap.aspx')
+    return announcements
 
-        # Clear cookies before login
-        driver.delete_all_cookies()
-
-        wait = WebDriverWait(driver, 10)
-        username_field = wait.until(EC.presence_of_element_located((By.ID, "DN_txtAcc")))
-        password_field = wait.until(EC.presence_of_element_located((By.ID, "DN_txtPass")))
-
-        username_field.clear()  # Clear any pre-filled data
-        password_field.clear()  # Clear any pre-filled data
-
-        username_field.send_keys(username)
-        password_field.send_keys(password)
-
-        login_button = wait.until(EC.element_to_be_clickable((By.ID, "QLTH_btnLogin")))
-        login_button.click()
-
-        # Wait for the page to load and verify if the login was successful
-        wait.until(EC.url_changes('http://sv.dut.udn.vn/PageDangNhap.aspx'))
-
-        if is_logged_in(driver):
-            print("Login successful!")
-            return driver
-        else:
-            raise Exception("Login unsuccessful! URL mismatch.")
-    
-    except Exception as e:
-        print(f"Login error: {str(e)}")
-        restart_driver()  # Restart the driver on failure
-        raise
-
-# Function to extract announcements from a tab
-def extract_announcements(soup, tab_id):
-    tab_content = soup.find(id=tab_id)
-    announcements_list = []
-    if tab_content:
-        announcements = tab_content.select("div.tbBox")
-        for announcement in announcements:
-            caption = announcement.select_one("div.tbBoxCaption")
-            content = announcement.select_one("div.tbBoxContent")
-
-            if caption and content:
-                spans = caption.find_all("span")
-                date = spans[0].text.strip() if len(spans) >= 1 else "No date"
-                title = spans[1].text.strip() if len(spans) >= 2 else "No title"
-
-                # Process <a> tags in content
-                for a_tag in content.find_all("a"):
-                    href = a_tag.get("href", "")
-                    a_tag.string = f"{a_tag.text.strip()} ({href})"
-
-                announcement_content = content.text.strip()
-
-                announcements_list.append({
-                    'date': date,
-                    'title': title,
-                    'content': announcement_content
-                })
-    else:
-        print(f"Tab with id: {tab_id} not found")
-    return announcements_list
-
-# Function to get announcements from a specific tab
-def get_tab_announcements(tab_id):
-    global driver
-    driver.get('http://sv.dut.udn.vn/')
-
-    wait = WebDriverWait(driver, 10)
-    try:
-        tab_link = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, f'li[aria-controls="{tab_id}"] a')))
-        tab_link.click()
-
-        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, f'#{tab_id} div.tbBox')))
-
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        return extract_announcements(soup, tab_id)
-    except Exception as e:
-        print(f"Error getting announcements from tab {tab_id}: {e}")
-        return []
-
-# Function to periodically update announcements cache
-def update_announcements_cache():
-    while True:
-        print("Updating announcements...")
-        app.config['announcements_tab0'] = get_tab_announcements("tabs_PubTB-divT0")
-        app.config['announcements_tab1'] = get_tab_announcements("tabs_PubTB-divT1")
-        time.sleep(300)  # Update every 5 minutes
-
-# Function to get schedule
-def get_schedule(driver):
-    wait = WebDriverWait(driver, 10)
-    menu_personal = wait.until(EC.visibility_of_element_located((By.ID, "lPaCANHAN")))
-    actions = ActionChains(driver)
-    actions.move_to_element(menu_personal).perform()
-
-    schedule_link = wait.until(EC.element_to_be_clickable((By.ID, "lCoCANHAN03")))
-    schedule_link.click()
-
-    wait.until(EC.presence_of_element_located((By.ID, "LHTN_divList")))
-
-    html_content = driver.find_element(By.ID, 'LHTN_divList').get_attribute('outerHTML')
-    soup = BeautifulSoup(html_content, 'html.parser')
-
-    table = soup.find('table')
-    schedule_data = []
-    if table:
-        rows = table.find_all('tr')
-        for row in rows:
-            cells = row.find_all('td')
-            row_data = [cell.get_text(strip=True) for cell in cells]
-            schedule_data.append(row_data)
-    else:
-        raise Exception("Schedule table not found in HTML.")
-    return schedule_data
-
-# Function to get survey schedule
-def get_survey_schedule(driver):
-    wait = WebDriverWait(driver, 10)
-    survey_menu = wait.until(EC.visibility_of_element_located((By.ID, "lPaCANHAN")))
-    actions = ActionChains(driver)
-    actions.move_to_element(survey_menu).perform()
-
-    survey_link = wait.until(EC.element_to_be_clickable((By.ID, "lCoCANHAN04")))
-    survey_link.click()
-
-    wait.until(EC.presence_of_element_located((By.ID, "TTKB_GridInfo")))
-
-    html_content = driver.find_element(By.ID, 'TTKB_GridInfo').get_attribute('outerHTML')
-    soup = BeautifulSoup(html_content, 'html.parser')
-
-    table = soup.find('table')
-    survey_data = []
-    if table:
-        rows = table.find_all('tr')
-        for row in rows:
-            cells = row.find_all('td')
-            row_data = [cell.get_text(strip=True) for cell in cells]
-            survey_data.append(row_data)
-    else:
-        raise Exception("Survey schedule table not found in HTML.")
-    return survey_data
-
-# API to fetch schedule and survey schedule
-@app.route('/get_all_data', methods=['POST'])
-def get_all_data():
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
-
-    global driver  # Ensure using the global driver variable
-
-    try:
-        # Log in to the website and return the logged-in driver
-        driver = login_to_website(username, password)
-
-        # Check if the driver is active
-        if driver is None or not is_logged_in(driver):
-            raise Exception("Failed to log in or driver is not initialized.")
-
-        # Get schedule data
-        schedule_data = get_schedule(driver)
-
-        # Get survey data
-        survey_data = get_survey_schedule(driver)
-
-        # Return schedule and survey data
-        return jsonify({
-            "success": True,
-            "username": username,
-            "schedule": schedule_data,
-            "survey_schedule": survey_data
-        }), 200
-
-    except Exception as e:
-        print("Error occurred:", e)
-        return jsonify({"success": False, "error": str(e)}), 400
-
-    finally:
-        if driver is not None:
-            driver.quit()  # Ensure the driver is cleaned up
-
-# API to get announcements from tab 0
 @app.route('/tab0', methods=['GET'])
-def get_announcements_tab0():
-    return jsonify(app.config.get('announcements_tab0', []))
+def announcement_general():
+    session = requests.Session()
+    payload = {
+        'E': 'CTRTBSV',
+        'PAGETB': '1',
+        'COL': 'TieuDe',
+        'NAME': '', 
+        'TAB': 0
+    }
 
-# API to get announcements from tab 1
+    time.sleep(3)
+    response = session.post(
+        "http://sv.dut.udn.vn/WebAjax/evLopHP_Load.aspx?E=CTRTBSV&PAGETB=1&COL=TieuDe&NAME=&TAB=0",
+        data=payload,
+        allow_redirects=True
+    )
+    
+    if response.status_code != 200:
+        return jsonify({"status": "failed", "error": "Unexpected status code"}), 401
+
+    # Giả sử bạn xử lý và trả về dữ liệu như sau
+    announcements_general = extract_announcements(response.text)  # Lưu vào biến toàn cục
+    return jsonify(announcements_general), 200  # Đảm bảo trả về từ điển
+
+
 @app.route('/tab1', methods=['GET'])
-def get_announcements_tab1():
-    return jsonify(app.config.get('announcements_tab1', []))
+def announcement_module():
+    session = requests.Session()
+    payload = {
+        'E': 'CTRTBGV',
+        'PAGETB': '1',
+        'COL': 'TieuDe',
+        'NAME': '', 
+        'TAB': 1
+    }
 
-# Start a thread to update announcements cache
-if __name__ == '__main__':
-    threading.Thread(target=update_announcements_cache, daemon=True).start()
-    app.run(debug=True, port=5000)
+    time.sleep(3)
+    response = session.post(
+        "http://sv.dut.udn.vn/WebAjax/evLopHP_Load.aspx?E=CTRTBGV&PAGETB=1&COL=TieuDe&NAME=&TAB=1",
+        data=payload,
+        allow_redirects=True
+    )
+
+    if response.status_code != 200:
+        return jsonify({"status": "failed", "error": "Unexpected status code"}), 401
+    
+    # Parse announcements and format the output
+    announcements = extract_announcements(response.text)
+    return jsonify(announcements), 200
+
+session = None
+        
+@app.route('/login', methods=['POST'])
+def login():
+    global session 
+    
+    username= request.json.get("username")
+    password = request.json.get("password")
+
+    # Tạo một session để duy trì cookies
+    session = requests.Session()
+    
+    # Gửi yêu cầu GET để lấy VIEWSTATE và các trường cần thiết khác
+    login_page = session.get("http://sv.dut.udn.vn/PageDangNhap.aspx")
+    soup = BeautifulSoup(login_page.text, 'html.parser')
+    
+    # Lấy VIEWSTATE, VIEWSTATEGENERATOR và EVENTVALIDATION nếu có
+    viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
+    viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
+    
+    # Tạo payload đăng nhập
+    payload = {
+        '__VIEWSTATE': viewstate,
+        '__VIEWSTATEGENERATOR': viewstate_generator,
+        '_ctl0:MainContent:DN_txtAcc': username,
+        '_ctl0:MainContent:DN_txtPass': password,
+        '_ctl0:MainContent:QLTH_btnLogin': 'Đăng nhập'
+    }
+    
+
+    # Gửi yêu cầu POST để đăng nhập
+    login_response = session.post("http://sv.dut.udn.vn/PageDangNhap.aspx", data=payload, allow_redirects=True)
+
+    # Kiểm tra mã trạng thái
+    if login_response.status_code != 200:
+        return jsonify({"status": "failed", "error": "Unexpected status code"}), 401
+
+   
+    # Kiểm tra URL redirect
+    if login_response.url.endswith('/PageCaNhan.aspx'):
+        return jsonify({"status": "success"}), 200
+    else:
+        return jsonify({"status": "failed"}), 401
+    
+@app.route('/personal_info', methods=['GET'])
+def personal_info():
+    global session
+    
+    # Kiểm tra đăng nhập
+    if session is None:
+        return jsonify({"status": "failed", "error": "Người dùng chưa đăng nhập"}), 401
+
+    # Gửi yêu cầu GET tới trang thông tin cá nhân
+    personal_info_page = session.get("http://sv.dut.udn.vn/PageCaNhan.aspx")
+
+    # Kiểm tra mã trạng thái
+    if personal_info_page.status_code != 200:
+        return jsonify({"status": "failed", "error": "Không thể truy cập trang thông tin cá nhân"}), 500
+
+    # Phân tích HTML thông tin cá nhân
+    soup = BeautifulSoup(personal_info_page.text, 'html.parser')
+    personal_info = {}
+
+    # Lấy thông tin cá nhân từ các thẻ input có id cụ thể
+    personal_info['HoTen'] = soup.find(id='CN_txtHoTen').get('value').strip() if soup.find(id='CN_txtHoTen') else None
+    personal_info['NgaySinh'] = soup.find(id='CN_txtNgaySinh').get('value').strip() if soup.find(id='CN_txtNgaySinh') else None
+    personal_info['GioiTinh'] = soup.find(id='CN_txtGioiTinh').get('value').strip() if soup.find(id='CN_txtGioiTinh') else None
+    personal_info['NganhHoc'] = soup.find(id='MainContent_CN_txtNganh').get('value').strip() if soup.find(id='MainContent_CN_txtNganh') else None
+    # personal_info['Lop'] = soup.find(id='CN_txtLop').get('value').strip() if soup.find(id='CN_txtLop') else None
+    personal_info['Email'] = soup.find(id='CN_txtMail2').get('value').strip() if soup.find(id='CN_txtMail2') else None
+    personal_info['CTDT'] = soup.find(id='MainContent_CN_txtCTDT').get('value').strip() if soup.find(id='MainContent_CN_txtCTDT') else None
+    # if personal_info['Lop'] is None:
+    #  print("Không tìm thấy thông tin về lớp.")
+    # Kiểm tra nếu thông tin cá nhân đã được trích xuất đầy đủ
+    if all(personal_info.values()):  # Kiểm tra nếu tất cả các trường đều có giá trị
+        return jsonify({"status": "success", "data": personal_info}), 200
+    else:
+        return jsonify({"status": "failed", "error": "Không tìm thấy thông tin cá nhân"}), 404
+
+
+    
+@app.route('/page_lh_ngay', methods=['GET'])
+def page_lh_ngay():
+    global session  # Declare session as global
+    
+    # Check if the user is logged in
+    if session is None:
+        return jsonify({"status": "failed", "error": "Người dùng chưa đăng nhập"}), 401
+
+    # Lấy ngày từ tham số query
+    # date = request.args.get("date")
+    # if not date:
+    #     return jsonify({"status": "failed", "error": "Ngày không hợp lệ"}), 400
+
+    # Tạo URL AJAX
+    date = datetime.today().strftime('%d/%m/%Y')
+    ajax_url = f"http://sv.dut.udn.vn/WebAjax/evLopHP_Load.aspx?E=LHTNLOAD&NF={date}"
+    
+    # Gửi yêu cầu AJAX
+    get_schedule = session.get(ajax_url)
+    print(date) 
+    # Kiểm tra phản hồi của yêu cầu AJAX
+    if get_schedule.status_code != 200:
+        return jsonify({"status": "failed", "error": "Không thể lấy lịch học"}), 500
+
+    # Phân tích HTML content từ phản hồi AJAX
+    soup = BeautifulSoup(get_schedule.text, 'html.parser')
+    
+    # Tìm bảng với ID LHTN_Grid
+    table = soup.find('table', {'id': 'LHTN_Grid'})
+    lich_hoc = []
+
+    # Lặp qua các hàng trong bảng, bỏ qua tiêu đề
+    for row in table.find_all('tr')[1:]:
+        cols = row.find_all('td')
+        if len(cols) > 0:  # Kiểm tra nếu có dữ liệu trong hàng
+            lich_hoc.append({
+                'STT': cols[0].text.strip(),
+                'Ma': cols[1].text.strip(),
+                'TenLopHocPhan': cols[2].text.strip(),
+                'GiangVien': cols[3].text.strip(),
+                'ThoiKhoaBieu': cols[4].text.strip(),
+                'NgayHoc': cols[5].text.strip(),
+                'HocOnline': cols[6].text.strip(),
+                'GhiChu': cols[7].text.strip()
+            })
+
+    return jsonify(lich_hoc), 200
+@app.route('/exam_schedule', methods=['GET'])
+def exam_schedule():
+    global session  # Sử dụng session toàn cục để giữ đăng nhập
+    
+    # Kiểm tra xem người dùng đã đăng nhập chưa
+    if session is None:
+        return jsonify({"status": "failed", "error": "Người dùng chưa đăng nhập"}), 401
+
+    # Tạo URL AJAX để lấy dữ liệu lịch thi
+    ajax_url = "http://sv.dut.udn.vn/WebAjax/evLopHP_Load.aspx?E=TTKBLoad&Code=2410"  # URL duy nhất
+
+    # Gửi yêu cầu AJAX
+    response = session.get(ajax_url)
+    
+    # Kiểm tra phản hồi của yêu cầu AJAX
+    if response.status_code != 200:
+        return jsonify({"status": "failed", "error": "Không thể lấy lịch thi"}), 500
+
+    # Phân tích HTML content từ phản hồi AJAX
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Tạo một đối tượng để lưu kết quả
+    results = {
+        "Lịch Học": [],
+        "Lịch Thi": []
+    }
+
+    # Xử lý bảng 1 với phương pháp kiểm tra số lượng ô trong hàng
+    table1 = soup.find('table', {'id': 'TTKB_GridInfo'})
+    if table1:
+        for row in table1.find_all('tr')[1:]:  # Bỏ qua tiêu đề
+            cells = row.find_all('td')
+            if len(cells) >= 9:  # Kiểm tra có ít nhất 9 ô để tránh lỗi
+                results["Lịch Học"].append({
+                    'TT': cells[0].get_text(strip=True),
+                    'MaLHP': cells[1].get_text(strip=True),
+                    'TenLHP': cells[2].get_text(strip=True),
+                    'SoTC': cells[3].get_text(strip=True),
+                    'GiangVien': cells[6].get_text(strip=True),
+                    'TKB': cells[7].get_text(strip=True),
+                    'TuanHoc': cells[8].get_text(strip=True)
+                })
+
+    # Xử lý bảng 2
+    table2 = soup.find('table', {'id': 'TTKB_GridLT'})
+    if table2:
+        for row in table2.find_all('tr')[1:]:  # Bỏ qua tiêu đề
+            cells = row.find_all('td')
+            if len(cells) >= 6:  # Kiểm tra có ít nhất 6 ô để tránh lỗi
+                results["Lịch Thi"].append({
+                    'TT': cells[0].get_text(strip=True),
+                    'MaLHP': cells[1].get_text(strip=True),
+                    'TenLHP': cells[2].get_text(strip=True),
+                    'NhomThi': cells[3].get_text(strip=True),
+                    'ThiChung': cells[4].get_text(strip=True),
+                    'LichThi': cells[5].get_text(strip=True)
+                })
+
+    return jsonify(results), 200
+
+
+@app.route('/tuition', methods=['GET'])
+def tuition():
+    # Kiểm tra nếu người dùng đã đăng nhập (giả sử session là đối tượng đại diện cho trạng thái đăng nhập)
+    if session is None:
+        return jsonify({"status": "failed", "error": "Người dùng chưa đăng nhập"}), 401
+
+    # URL học phí
+    tuition_url = "http://sv.dut.udn.vn/WebAjax/evLopHP_Load.aspx?E=THPhiLoad&Code=2410"
+
+    # Gửi yêu cầu HTTP để lấy dữ liệu
+    response = session.get(tuition_url)
+    print("Mã trạng thái HTTP:", response.status_code)  # Kiểm tra mã trạng thái
+    if response.status_code != 200:
+        return jsonify({"status": "failed", "error": "Không thể lấy học phí"}), 500
+
+    # In ra nội dung HTML để kiểm tra cấu trúc
+    print(response.text)
+
+    # Phân tích nội dung HTML bằng BeautifulSoup
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Tìm bảng học phí theo id 'THocPhi_GridInfo'
+    table = soup.find('table', {'id': 'THocPhi_GridInfo'})
+    tuition_info = []
+
+    if table:
+        # Lặp qua các dòng trong bảng (bỏ qua dòng tiêu đề)
+        rows = table.find_all('tr')[1:]  # Bỏ qua dòng tiêu đề
+        for row in rows:
+            cols = row.find_all('td')
+            if len(cols) >= 6:  # Đảm bảo có đủ cột
+                tuition_info.append({
+                    'STT': cols[0].text.strip(),  # Số thứ tự
+                    'MaHP': cols[1].text.strip(),  # Mã học phần
+                    'TenHP': cols[2].text.strip(),  # Tên học phần
+                    'SoTC': cols[3].text.strip(),  # Số tín chỉ
+                    'CLC': cols[4].text.strip(),  # CLC
+                    'HOCPHI': cols[5].text.strip()  # Học phí
+                })
+
+        # Lấy tổng cộng học phí từ dòng có class 'kctHeader'
+        total_row = table.find_all('tr', class_='kctHeader')
+        print("Tổng học phí tìm thấy:", total_row)  # In ra kết quả tìm được
+        if total_row:
+            total_cols = total_row[0].find_all('td')
+            if len(total_cols) >= 6:
+                total_fee = total_cols[5].text.strip()  # Lấy giá trị tổng học phí từ cột thứ 6
+                print("Tổng học phí:", total_fee)  # In ra tổng học phí
+                tuition_info.append({
+                    'TONGCONG': total_fee  # Tổng cộng học phí
+                })
+
+        # Trả về dữ liệu học phí dưới dạng JSON
+        return jsonify(tuition_info), 200
+    else:
+        return jsonify({"status": "failed", "error": "Không tìm thấy bảng học phí"}), 500
+
+
+
+
+if __name__== '__main__':
+    app.run(port=5000,debug=True)
