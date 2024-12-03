@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+
         // Initialize Login button
         val buttonLogin: ImageButton = findViewById(R.id.buttonLogin)
         buttonLogin.setOnClickListener {

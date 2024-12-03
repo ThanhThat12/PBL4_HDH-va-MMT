@@ -1,10 +1,12 @@
 package com.example.myapplication
 
-import retrofit2.http.GET
+import okhttp3.ResponseBody
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
-import java.io.Serializable
+
 
 // Đối tượng dữ liệu gửi lên API
 data class LoginRequest(val username: String, val password: String)
@@ -21,4 +23,23 @@ interface ApiService {
 
     @GET("/tab0") // Endpoint cho API 2
     fun getAnnouncementsTab0(): Call<List<Announcement>>
+
+    @GET("personal_info")
+    fun getPersonalInfo(): Call<PersonalInfoResponse>
+
+    @GET("/page_lh_ngay")
+    fun getSchedule(): Call<List<Schedule>>
+
+    @GET("/exam_schedule/class_schedule")
+    fun getLichHoc(): Call<LichHocResponse>
+
+    @GET("/exam_schedule/exam_schedule")
+    fun getLichThi(): Call<LichThiResponse>
+
+    @GET("/tuition") // Thay URL endpoint API của bạn
+    fun getHocPhi(): Call<List<HocPhi>>
+
+
+
 }
+

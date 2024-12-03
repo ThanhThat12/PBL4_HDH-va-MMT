@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
+from flasgger import Swagger
 import requests
 from bs4 import BeautifulSoup
 import time
 from datetime import datetime
 
 app = Flask(__name__)
-
+# Cấu hình Swagger UI cho ứng dụng Flask
+swagger = Swagger(app)
 def get_current_semester():
     """
     Lấy mã học kỳ hiện tại theo định dạng:
@@ -35,7 +37,6 @@ def extract_announcements(html):
     for announcement_div in soup.find_all(class_="tbBox"):
         date_element = announcement_div.select_one("div.tbBoxCaption b > span")
         date = date_element.get_text(strip=True).replace(":", "") if date_element else None
-
         # Lấy trường title
         span_elements = announcement_div.select("div.tbBoxCaption span")
         title = span_elements[1].get_text(strip=True) if len(span_elements) > 1 else None
@@ -55,8 +56,22 @@ def extract_announcements(html):
 
     return announcements
 
+# API 1: /tab0 - Không cần đăng nhập
 @app.route('/tab0', methods=['GET'])
 def announcement_general():
+    """
+    Get general announcements from Tab 0
+    ---
+    responses:
+      200:
+        description: A list of general announcements
+        examples:
+          application/json: [{ "date":"Ngày Thông báo", "title": "Thông báo 1", "content": "Nội dung thông báo 1"}]
+      401:
+        description: Error when fetching data
+        examples:
+          application/json: {"status": "failed", "error": "Unexpected status code"}
+    """
     session = requests.Session()
     payload = {
         'E': 'CTRTBSV',
@@ -65,8 +80,6 @@ def announcement_general():
         'NAME': '', 
         'TAB': 0
     }
-
-    #time.sleep(3)
     response = session.post(
         "http://sv.dut.udn.vn/WebAjax/evLopHP_Load.aspx?E=CTRTBSV&PAGETB=1&COL=TieuDe&NAME=&TAB=0",
         data=payload,
@@ -76,13 +89,25 @@ def announcement_general():
     if response.status_code != 200:
         return jsonify({"status": "failed", "error": "Unexpected status code"}), 401
 
-    # Giả sử bạn xử lý và trả về dữ liệu như sau
-    announcements_general = extract_announcements(response.text)  # Lưu vào biến toàn cục
-    return jsonify(announcements_general), 200  # Đảm bảo trả về từ điển
+    announcements_general = extract_announcements(response.text)
+    return jsonify(announcements_general), 200
 
-
+# API 2: /tab1 - Không cần đăng nhập
 @app.route('/tab1', methods=['GET'])
 def announcement_module():
+    """
+    Get module-specific announcements from Tab 1
+    ---
+    responses:
+      200:
+        description: A list of module-specific announcements
+        examples:
+          application/json: [{"date":"Ngày Thông báo", "title": "Thông báo 1", "content": "Nội dung thông báo 1"}]
+      401:
+        description: Error when fetching data
+        examples:
+          application/json: {"status": "failed", "error": "Unexpected status code"}
+    """
     session = requests.Session()
     payload = {
         'E': 'CTRTBGV',
@@ -91,8 +116,6 @@ def announcement_module():
         'NAME': '', 
         'TAB': 1
     }
-
-    #time.sleep(3)
     response = session.post(
         "http://sv.dut.udn.vn/WebAjax/evLopHP_Load.aspx?E=CTRTBGV&PAGETB=1&COL=TieuDe&NAME=&TAB=1",
         data=payload,
@@ -102,17 +125,41 @@ def announcement_module():
     if response.status_code != 200:
         return jsonify({"status": "failed", "error": "Unexpected status code"}), 401
     
-    # Parse announcements and format the output
     announcements = extract_announcements(response.text)
     return jsonify(announcements), 200
-
-session = None
         
+# Biến toàn cục để lưu session
+session = None
+
 @app.route('/login', methods=['POST'])
 def login():
+    """
+    Login to the website and get the session
+    ---
+    parameters:
+      - name: username
+        in: body
+        type: string
+        required: true
+        description: The username for login
+      - name: password
+        in: body
+        type: string
+        required: true
+        description: The password for login
+    responses:
+      200:
+        description: Login successful
+        examples:
+          application/json: {"status": "success"}
+      401:
+        description: Login failed
+        examples:
+          application/json: {"status": "failed"}
+    """
     global session 
     
-    username= request.json.get("username")
+    username = request.json.get("username")
     password = request.json.get("password")
 
     # Tạo một session để duy trì cookies
@@ -135,7 +182,6 @@ def login():
         '_ctl0:MainContent:QLTH_btnLogin': 'Đăng nhập'
     }
     
-
     # Gửi yêu cầu POST để đăng nhập
     login_response = session.post("http://sv.dut.udn.vn/PageDangNhap.aspx", data=payload, allow_redirects=True)
 
@@ -143,7 +189,6 @@ def login():
     if login_response.status_code != 200:
         return jsonify({"status": "failed", "error": "Unexpected status code"}), 401
 
-   
     # Kiểm tra URL redirect
     if login_response.url.endswith('/PageCaNhan.aspx'):
         return jsonify({"status": "success"}), 200
@@ -152,6 +197,23 @@ def login():
     
 @app.route('/personal_info', methods=['GET'])
 def personal_info():
+    """
+    Get Personal infor
+    ---
+    responses:
+      200:
+        description: Personal info retrieved successfully
+        examples:
+          application/json: {"status": "success", "data": {"HoTen": "Nguyen Thanh That", "NgaySinh": "01/01/1995", "GioiTinh": "Nam", "Email": "that1234@gmail.com"}}
+      401:
+        description: User is not logged in
+        examples:
+          application/json: {"status": "failed", "error": "User is not logged in"}
+      404:
+        description: Personal info not found
+        examples:
+          application/json: {"status": "failed", "error": "Personal info not found"}
+    """
     global session
     
     # Kiểm tra đăng nhập
@@ -174,31 +236,60 @@ def personal_info():
     personal_info['NgaySinh'] = soup.find(id='CN_txtNgaySinh').get('value').strip() if soup.find(id='CN_txtNgaySinh') else None
     personal_info['GioiTinh'] = soup.find(id='CN_txtGioiTinh').get('value').strip() if soup.find(id='CN_txtGioiTinh') else None
     personal_info['NganhHoc'] = soup.find(id='MainContent_CN_txtNganh').get('value').strip() if soup.find(id='MainContent_CN_txtNganh') else None
-    # personal_info['Lop'] = soup.find(id='CN_txtLop').get('value').strip() if soup.find(id='CN_txtLop') else None
     personal_info['Email'] = soup.find(id='CN_txtMail2').get('value').strip() if soup.find(id='CN_txtMail2') else None
     personal_info['CTDT'] = soup.find(id='MainContent_CN_txtCTDT').get('value').strip() if soup.find(id='MainContent_CN_txtCTDT') else None
-    # if personal_info['Lop'] is None:
-    #  print("Không tìm thấy thông tin về lớp.")
+
     # Kiểm tra nếu thông tin cá nhân đã được trích xuất đầy đủ
-    if all(personal_info.values()):  # Kiểm tra nếu tất cả các trường đều có giá trị
+    if all(personal_info.values()):
         return jsonify({"status": "success", "data": personal_info}), 200
     else:
         return jsonify({"status": "failed", "error": "Không tìm thấy thông tin cá nhân"}), 404
 
 
-    
+
 @app.route('/page_lh_ngay', methods=['GET'])
 def page_lh_ngay():
+    """
+    Get day scheduled
+    ---
+    responses:
+      200:
+        description: Lịch học ngày hôm nay
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              STT:
+                type: string
+              Ma:
+                type: string
+              TenLopHocPhan:
+                type: string
+              GiangVien:
+                type: string
+              ThoiKhoaBieu:
+                type: string
+              NgayHoc:
+                type: string
+              HocOnline:
+                type: string
+              GhiChu:
+                type: string
+      401:
+        description: Người dùng chưa đăng nhập
+        examples:
+          application/json: {"status": "failed", "error": "Người dùng chưa đăng nhập"}
+      500:
+        description: Lỗi không thể lấy lịch học
+        examples:
+          application/json: {"status": "failed", "error": "Không thể lấy lịch học"}
+    """
     global session  # Declare session as global
     
     # Check if the user is logged in
     if session is None:
         return jsonify({"status": "failed", "error": "Người dùng chưa đăng nhập"}), 401
-
-    # Lấy ngày từ tham số query
-    # date = request.args.get("date")
-    # if not date:
-    #     return jsonify({"status": "failed", "error": "Ngày không hợp lệ"}), 400
 
     # Tạo URL AJAX
     today = datetime.today().strftime('%d/%m/%Y')
@@ -206,7 +297,7 @@ def page_lh_ngay():
     
     # Gửi yêu cầu AJAX
     get_schedule = session.get(ajax_url)
-    print(today) 
+    
     # Kiểm tra phản hồi của yêu cầu AJAX
     if get_schedule.status_code != 200:
         return jsonify({"status": "failed", "error": "Không thể lấy lịch học"}), 500
@@ -230,13 +321,51 @@ def page_lh_ngay():
                 'ThoiKhoaBieu': cols[4].text.strip(),
                 'NgayHoc': cols[5].text.strip(),
                 'HocOnline': cols[6].text.strip(),
-                'GhiChu': cols[7].text.strip()
+                'GhiChu': cols[7].text.strip() if len(cols) > 7 else None
             })
-
+     # Kiểm tra nếu không có dữ liệu lịch học
+    if not lich_hoc:
+        return jsonify({"status": "failed", "error": "Không có lịch học nào cho ngày hôm nay"}), 404
     return jsonify(lich_hoc), 200
 @app.route('/exam_schedule/class_schedule', methods=['GET'])
-
 def class_schedule():
+    """
+    Get semester Scheduled
+    ---
+    responses:
+      200:
+        description: Lịch học theo mã học kỳ
+        schema:
+          type: object
+          properties:
+            Lịch Học:
+              type: array
+              items:
+                type: object
+                properties:
+                  TT:
+                    type: string
+                  MaLHP:
+                    type: string
+                  TenLHP:
+                    type: string
+                  SoTC:
+                    type: string
+                  GiangVien:
+                    type: string
+                  TKB:
+                    type: string
+                  TuanHoc:
+                    type: string
+      401:
+        description: Người dùng chưa đăng nhập
+        examples:
+          application/json: {"status": "failed", "error": "Người dùng chưa đăng nhập"}
+      500:
+        description: Lỗi không thể lấy lịch học
+        examples:
+          application/json: {"status": "failed", "error": "Không thể lấy lịch học"}
+    """
     global session
     
     if session is None:
@@ -272,9 +401,44 @@ def class_schedule():
     return jsonify({"Lịch Học": results}), 200
 
 
-@app.route('/exam_schedule/exam_schedule', methods=['GET'])
 
+@app.route('/exam_schedule/exam_schedule', methods=['GET'])
 def exam_schedule_details():
+    """
+    Get exam scheduled
+    ---
+    responses:
+      200:
+        description: Lịch thi theo mã học kỳ
+        schema:
+          type: object
+          properties:
+            Lịch Thi:
+              type: array
+              items:
+                type: object
+                properties:
+                  TT:
+                    type: string
+                  MaLHP:
+                    type: string
+                  TenLHP:
+                    type: string
+                  NhomThi:
+                    type: string
+                  ThiChung:
+                    type: string
+                  LichThi:
+                    type: string
+      401:
+        description: Người dùng chưa đăng nhập
+        examples:
+          application/json: {"status": "failed", "error": "Người dùng chưa đăng nhập"}
+      500:
+        description: Lỗi không thể lấy lịch thi
+        examples:
+          application/json: {"status": "failed", "error": "Không thể lấy lịch thi"}
+    """
     global session
     
     if session is None:
@@ -308,8 +472,46 @@ def exam_schedule_details():
     return jsonify({"Lịch Thi": results}), 200
 
 
+
 @app.route('/tuition', methods=['GET'])
 def tuition():
+    """
+    Get Tutition
+    ---
+    responses:
+      200:
+        description: Danh sách học phí và tổng tín chỉ của học kỳ hiện tại
+        schema:
+          type: object
+          properties:
+            STT:
+              type: string
+            MaHP:
+              type: string
+            TenHP:
+              type: string
+            SoTC:
+              type: string
+            CLC:
+              type: string
+            HOCPHI:
+              type: string
+            TONGCONG:
+              type: object
+              properties:
+                TONGTC:
+                  type: integer
+                TONGHOCPHI:
+                  type: string
+      401:
+        description: Người dùng chưa đăng nhập
+        examples:
+          application/json: {"status": "failed", "error": "Người dùng chưa đăng nhập"}
+      500:
+        description: Lỗi không thể lấy thông tin học phí
+        examples:
+          application/json: {"status": "failed", "error": "Không thể lấy học phí"}
+    """
     # Kiểm tra nếu người dùng đã đăng nhập
     if session is None:
         return jsonify({"status": "failed", "error": "Người dùng chưa đăng nhập"}), 401
@@ -321,7 +523,6 @@ def tuition():
 
     # Gửi yêu cầu HTTP để lấy dữ liệu
     response = session.get(tuition_url)
-    # print("Mã trạng thái HTTP:", response.status_code)  # Kiểm tra mã trạng thái
     if response.status_code != 200:
         return jsonify({"status": "failed", "error": "Không thể lấy học phí"}), 500
 
@@ -335,7 +536,7 @@ def tuition():
 
     tuition_info = []
     total_credits = 0  # Biến lưu tổng số tín chỉ
-    total_fee = 0.0    # Biến lưu tổng học phí (Sử dụng số thực để tính toán tiền)
+    total_fee = 0.0    # Biến lưu tổng học phí
 
     # Lặp qua các dòng trong bảng
     rows = table.find_all('tr')[1:]  # Bỏ qua dòng tiêu đề
@@ -348,21 +549,20 @@ def tuition():
                 ma_hp = cols[1].text.strip()
                 ten_hp = cols[2].text.strip()
                 so_tc = cols[3].text.strip()
-                #clc = cols[4].text.strip()
+                clc = cols[4].text.strip()
                 hoc_phi = cols[5].text.strip()
 
-                # # Tính tổng tín chỉ
-                # if so_tc.isdigit():
-                #     total_credits += int(so_tc)
+                # Tính tổng tín chỉ
+                if so_tc.isdigit():
+                    total_credits += int(so_tc)
 
-                # # Cộng học phí vào tổng học phí (Chuyển đổi thành số thực)
-                # try:
-                #     # Loại bỏ dấu phẩy và khoảng trắng trước khi chuyển đổi
-                #     hoc_phi_cleaned = hoc_phi.replace(',', '').strip()
-                #     if hoc_phi_cleaned.replace('.', '', 1).isdigit():
-                #         total_fee += float(hoc_phi_cleaned)
-                # except ValueError:
-                #     print(f"Lỗi khi chuyển đổi học phí: {hoc_phi}")
+                # Cộng học phí vào tổng học phí
+                try:
+                    hoc_phi_cleaned = hoc_phi.replace(',', '').strip()
+                    if hoc_phi_cleaned.replace('.', '', 1).isdigit():
+                        total_fee += float(hoc_phi_cleaned)
+                except ValueError:
+                    print(f"Lỗi khi chuyển đổi học phí: {hoc_phi}")
 
                 # Thêm vào danh sách kết quả
                 tuition_info.append({
@@ -370,7 +570,7 @@ def tuition():
                     'MaHP': ma_hp,
                     'TenHP': ten_hp,
                     'SoTC': so_tc,
-                    #'CLC': clc,
+                    'CLC': clc,
                     'HOCPHI': hoc_phi
                 })
         else:
@@ -379,21 +579,18 @@ def tuition():
             if len(total_cols) >= 6:
                 total_fee_text = total_cols[5].text.strip()
 
-    # # Định dạng tổng học phí với dấu phẩy phân cách hàng nghìn
-    # formatted_total_fee = "{:,.0f}".format(total_fee)
+    # Định dạng tổng học phí với dấu phẩy phân cách hàng nghìn
+    formatted_total_fee = "{:,.0f}".format(total_fee)
 
-    # # Thêm tổng tín chỉ và học phí vào danh sách
-    # tuition_info.append({
-    #     'TONGCONG': {
-    #         'TONGTC': total_credits,  # Tổng số tín chỉ
-    #         'TONGHOCPHI': formatted_total_fee   # Tổng học phí đã định dạng
-    #     }
-    # })
+    # Thêm tổng tín chỉ và học phí vào danh sách
+    tuition_info.append({
+        'TONGCONG': {
+            'TONGTC': total_credits,  # Tổng số tín chỉ
+            'TONGHOCPHI': formatted_total_fee   # Tổng học phí đã định dạng
+        }
+    })
 
     # Trả về dữ liệu học phí dưới dạng JSON
     return jsonify(tuition_info), 200
-
-
-
-if __name__== '__main__':
+if __name__== '__main_':
     app.run(port=5000,debug=True)

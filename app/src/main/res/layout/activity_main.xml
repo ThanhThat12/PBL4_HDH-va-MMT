@@ -9,10 +9,12 @@
     <!-- Navigation View -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
+        android:layout_width="350dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:menu="@menu/nav_menu" />
+        app:menu="@menu/nav_menu"
+
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,32 +24,32 @@
         <!-- Header with Menu and Login buttons -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:background="@color/black"
-            android:layout_height="76dp">
+            android:layout_height="58dp"
+            android:background="@color/light_cyan">
 
             <Button
                 android:id="@+id/buttonMenu"
-                android:backgroundTint="@color/black"
                 android:layout_width="108dp"
                 android:layout_height="53dp"
                 android:background="@color/textColor"
+                android:backgroundTint="@color/light_cyan"
                 android:drawableLeft="@drawable/menu"
                 android:drawablePadding="-10dp"
                 android:paddingStart="0dp"
                 android:paddingEnd="0dp"
                 android:text="Menu"
-                android:textColor="@color/green"
+                android:textColor="@color/black"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
                 android:id="@+id/buttonLogin"
-                android:backgroundTint="@color/black"
                 android:layout_width="74dp"
                 android:layout_height="53dp"
                 android:layout_marginEnd="16dp"
                 android:background="@color/white"
+                android:backgroundTint="@color/light_cyan"
                 android:contentDescription="@string/login_activity_title"
                 android:padding="8dp"
                 android:src="@drawable/login_icon"

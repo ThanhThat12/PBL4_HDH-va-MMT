@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/item_border"
+    android:layout_marginBottom="8dp">
+
+    <!-- Caption (Title) at the top -->
+    <TextView
+        android:id="@+id/caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lịch Học"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_red_light"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"/>
+
+    <!-- Grouping all information below the caption in one block -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/TT"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Số thứ tự :"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/MaLHP"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mã LHP :"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/TenLHP"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tên LHP :"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/SoTCH"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Số tín chỉ :"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/GV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Giảng viên :"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/TKB"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TKB :"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+
+        <TextView
+            android:id="@+id/Tuanhoc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tuần Học :"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+    </LinearLayout>
+
+</LinearLayout>

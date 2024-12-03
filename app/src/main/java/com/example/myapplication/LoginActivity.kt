@@ -41,8 +41,8 @@ class LoginActivity : AppCompatActivity() {
         // Tạo đối tượng LoginRequest
         val loginRequest = LoginRequest(username, password)
 
-        // Gọi API thông qua RetrofitClient
-        RetrofitClient.instance.login(loginRequest).enqueue(object : Callback<LoginResponse> {
+        // Gọi API thông qua RetrofitClient (Sử dụng apiService)
+        RetrofitClient.apiService.login(loginRequest).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful && response.body()?.status == "success") {
                     // Đăng nhập thành công, chuyển sang ScheduleActivity

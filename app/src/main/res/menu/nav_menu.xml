@@ -1,46 +1,69 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Tên ứng dụng (Chỉ để hiển thị) -->
+
+
+    <!-- Mục "Schedule App" -->
     <item
         android:id="@+id/nav_app_name"
         android:title="Schedule App"
-        android:enabled="false"
-        android:icon="@drawable/home"
-        android:titleTextAppearance="?android:attr/textAppearanceMedium" />
+        android:enabled="true"
+        android:minHeight="300dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
 
+        />
+    <item
+        android:id="@+id/divider11"
+        android:title="-----------------------------------------------------"
+        android:enabled="false"
+         />
     <!-- Divider -->
     <item
         android:id="@+id/divider1"
+        android:title="Le Nguyen Thanh That"
+        android:enabled="true"
+        android:icon="@drawable/img"
+        />
+    <item
+        android:id="@+id/divider22"
         android:title=""
         android:enabled="false"
-        android:icon="@android:drawable/divider_horizontal_bright" />
-
-    <!-- Lịch -->
+        />
+    <!-- Mục Lịch -->
     <item
         android:id="@+id/nav_calendar"
-        android:title="Lịch"
-        android:icon="@drawable/img" />
-
+        android:title="Tran Cong Toai"
+        android:icon="@drawable/img"
+        />
+    <item
+        android:id="@+id/divider33"
+        android:title="-----------------------------------------------------"
+        android:enabled="false"
+         />
     <!-- Divider -->
     <item
         android:id="@+id/divider2"
+        android:title="Tran Xuan Quang"
+        android:enabled="true"
+        android:icon="@drawable/img"
+        />
+    <item
+        android:id="@+id/divider44"
         android:title=""
         android:enabled="false"
-        android:icon="@android:drawable/divider_horizontal_bright" />
-
-    <!-- Liên hệ -->
+         />
+    <!-- Mục Liên hệ -->
     <item
         android:id="@+id/nav_contacts"
-        android:title="Liên hệ"
-        android:icon="@drawable/img" />
-
-    <!-- Divider -->
+        android:title="Pham Van Huy"
+        android:icon="@drawable/img"
+        />
     <item
-        android:id="@+id/divider3"
-        android:title=""
+        android:id="@+id/divider55"
+        android:title="-----------------------------------------------------"
         android:enabled="false"
-        android:icon="@android:drawable/divider_horizontal_bright" />
+         />
 
-    <!-- Thoát -->
+    <!-- Mục Thoát -->
     <item
         android:id="@+id/nav_exit"
         android:title="Thoát"

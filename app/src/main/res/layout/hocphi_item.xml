@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/item_border"
+    android:layout_marginBottom="8dp">
+
+
+    <TextView
+        android:id="@+id/caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Học Phí"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_red_light"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"/>
+    <!-- Thứ tự: Bold and larger text size -->
+    <TextView
+        android:id="@+id/Stt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Thứ tự"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"
+        android:textColor="@android:color/black"/>
+
+    <!-- Mã LHP: Smaller text size -->
+    <TextView
+        android:id="@+id/MaHP"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mã LHP"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"
+        android:textColor="@android:color/black"/>
+
+    <!-- Tên LHP: Same size as Mã LHP -->
+    <TextView
+        android:id="@+id/TenHP"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tên LHP"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"
+        android:textColor="@android:color/black"/>
+
+    <!-- Nhóm Thi: Same size as Mã LHP -->
+    <TextView
+        android:id="@+id/SoTC"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Số TC"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"
+        android:textColor="@android:color/black"/>
+
+
+
+    <!-- Lịch Thi: Same size as Mã LHP -->
+    <TextView
+        android:id="@+id/HocPhi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Học Phí"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"/>
+</LinearLayout>
