@@ -31,7 +31,6 @@ class LichThiAdapter(private val lichThiList: List<LichThi>) :
         private val ThiChung: TextView = itemView.findViewById(R.id.thichung)
         private val Lichthi: TextView = itemView.findViewById(R.id.Lichthi)
 
-
         fun bind(lichThi: LichThi) {
             TT.text = "Số thứ tự: ${lichThi.TT}"
             MaLHP.text = "Mã LHP: ${lichThi.MaLHP}"
@@ -40,6 +39,5 @@ class LichThiAdapter(private val lichThiList: List<LichThi>) :
             ThiChung.text = "Thi chung: ${lichThi.ThiChung}"
             Lichthi.text = "Lịch thi: ${lichThi.LichThi}"
         }
-
     }
 }

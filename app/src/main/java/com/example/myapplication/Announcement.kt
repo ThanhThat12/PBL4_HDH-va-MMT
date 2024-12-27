@@ -64,13 +64,9 @@ data class LichThi(
     val LichThi: String
 )
 
-// Data class for the response containing a list of HocPhi objects
-data class HocPhiResponse(
-    @SerializedName("hocPhiList") val hocPhiList: List<HocPhi>
-)
 
-// Data class for each HocPhi object
-// Data class for each HocPhi object
+// Data class for the response containing a list of HocPhi objects
+
 data class HocPhi(
     @SerializedName("HOCPHI") val hocPhi: String,
     @SerializedName("MaHP") val maHP: String,

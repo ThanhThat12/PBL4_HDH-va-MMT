@@ -12,9 +12,7 @@
         android:layout_width="350dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:menu="@menu/nav_menu"
-
-        />
+        app:menu="@menu/nav_menu" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -59,7 +57,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Buttons and RecyclerView Section -->
+        <!-- Buttons for selecting tabs -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -101,7 +99,41 @@
             </androidx.cardview.widget.CardView>
         </LinearLayout>
 
-        <!-- RecyclerView for displaying content -->
+        <!-- Search Section: Spinner + EditText -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <!-- Spinner for selecting search criteria -->
+
+            <!-- EditText for entering search keyword -->
+
+            <Spinner
+                android:id="@+id/searchCriteriaSpinner"
+                android:layout_width="65dp"
+                android:layout_height="42dp"
+                android:layout_weight="1"
+                android:entries="@array/search_criteria" />
+
+            <EditText
+                android:id="@+id/searchKeywordEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:hint="Tìm kiếm"
+                android:inputType="text" />
+
+            <!-- Search Button -->
+            <Button
+                android:id="@+id/searchButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tìm kiếm" />
+        </LinearLayout>
+
+        <!-- RecyclerView for displaying search results -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"

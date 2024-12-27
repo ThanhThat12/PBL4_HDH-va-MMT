@@ -28,7 +28,6 @@ class LichHocAdapter(private val lichHocList: List<LichHoc>) :
     override fun onBindViewHolder(holder: LichHocViewHolder, position: Int) {
         val item = lichHocList[position]
 
-        // Thêm mô tả vào nội dung TextView
         holder.tvSoTT.text = "Số thứ tự: ${item.tt}"
         holder.tvMaLHP.text = "Mã LHP: ${item.maLHP}"
         holder.tvTenLHP.text = "Tên LHP: ${item.tenLHP}"
@@ -37,7 +36,6 @@ class LichHocAdapter(private val lichHocList: List<LichHoc>) :
         holder.tvTKB.text = "Thời khóa biểu: ${item.tkb}"
         holder.tvTuanHoc.text = "Tuần học: ${item.tuanHoc}"
     }
-
 
     override fun getItemCount(): Int = lichHocList.size
 }

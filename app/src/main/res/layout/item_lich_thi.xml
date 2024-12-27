@@ -1,85 +1,84 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@drawable/item_border"
     android:layout_marginBottom="8dp">
 
-
-    <TextView
-        android:id="@+id/caption"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Lịch Thi"
-        android:textSize="25sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/holo_red_light"
-        android:layout_marginBottom="8dp"
-        android:gravity="center"/>
-    <!-- Thứ tự: Bold and larger text size -->
+    <!-- Thứ tự -->
     <TextView
         android:id="@+id/TT"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Thứ tự"
-        android:textSize="18sp"
+        android:text="Số thứ tự:"
+        android:textSize="16sp"
         android:textStyle="bold"
         android:layout_marginBottom="4dp"
-        android:textColor="@android:color/black"/>
+        android:textColor="@android:color/black" />
 
-    <!-- Mã LHP: Smaller text size -->
+
+
+    <!-- Mã LHP -->
     <TextView
         android:id="@+id/MaLHP"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Mã LHP"
-        android:textSize="18sp"
+        android:text="Mã LHP:"
+        android:textSize="16sp"
         android:textStyle="bold"
         android:layout_marginBottom="4dp"
-        android:textColor="@android:color/black"/>
+        android:textColor="@android:color/black" />
 
-    <!-- Tên LHP: Same size as Mã LHP -->
+
+
+    <!-- Tên LHP -->
     <TextView
         android:id="@+id/TenLHP"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tên LHP"
-        android:textSize="18sp"
+        android:text="Tên LHP:"
+        android:textSize="16sp"
         android:textStyle="bold"
         android:layout_marginBottom="4dp"
-        android:textColor="@android:color/black"/>
+        android:textColor="@android:color/black" />
 
-    <!-- Nhóm Thi: Same size as Mã LHP -->
+
+
+    <!-- Nhóm thi -->
     <TextView
         android:id="@+id/NhomThi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Nhóm Thi"
-        android:textSize="18sp"
+        android:text="Nhóm thi:"
+        android:textSize="16sp"
         android:textStyle="bold"
         android:layout_marginBottom="4dp"
-        android:textColor="@android:color/black"/>
+        android:textColor="@android:color/black" />
 
-    <!-- Thi Chung: Same size as Mã LHP -->
+
+    <!-- Thi chung -->
     <TextView
         android:id="@+id/thichung"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Thi Chung"
-        android:textSize="18sp"
+        android:text="Thi chung:"
+        android:textSize="16sp"
         android:textStyle="bold"
         android:layout_marginBottom="4dp"
-        android:textColor="@android:color/black"/>
+        android:textColor="@android:color/black" />
 
-    <!-- Lịch Thi: Same size as Mã LHP -->
+    <!-- Lịch thi -->
     <TextView
         android:id="@+id/Lichthi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Lịch Thi"
-        android:textSize="18sp"
+        android:text="Lịch thi:"
+        android:textSize="16sp"
         android:textStyle="bold"
-        android:textColor="@android:color/black"/>
+        android:textColor="@android:color/black" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"
+        android:layout_marginVertical="10dp" />
 </LinearLayout>

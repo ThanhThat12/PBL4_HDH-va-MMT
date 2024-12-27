@@ -11,7 +11,7 @@ class HocPhiAdapter(private val hocPhiList: List<HocPhi>) :
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HocPhiViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.hocphi_item, parent, false) // Inflate the item layout
+            .inflate(R.layout.hocphi_item, parent, false)
         return HocPhiViewHolder(view)
     }
 
@@ -20,9 +20,7 @@ class HocPhiAdapter(private val hocPhiList: List<HocPhi>) :
         holder.bind(hocPhi)
     }
 
-    override fun getItemCount(): Int {
-        return hocPhiList.size
-    }
+    override fun getItemCount(): Int = hocPhiList.size
 
     class HocPhiViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val stt: TextView = itemView.findViewById(R.id.Stt)
@@ -32,11 +30,11 @@ class HocPhiAdapter(private val hocPhiList: List<HocPhi>) :
         private val hocPhiTextView: TextView = itemView.findViewById(R.id.HocPhi)
 
         fun bind(hocPhi: HocPhi) {
-            stt.text = "STT: ${hocPhi.stt}"
-            maHP.text = "Mã HP: ${hocPhi.maHP}"
-            tenHP.text = "Tên HP: ${hocPhi.tenHP}"
-            soTC.text = "Số TC: ${hocPhi.soTC}"
-            hocPhiTextView.text = "Học Phí: ${hocPhi.hocPhi}"
+            stt.text = hocPhi.stt
+            maHP.text = hocPhi.maHP
+            tenHP.text = hocPhi.tenHP
+            soTC.text = hocPhi.soTC
+            hocPhiTextView.text = hocPhi.hocPhi
         }
     }
 }

@@ -33,7 +33,7 @@ class AnnouncementAdapter(private val announcements: List<Announcement>) : Recyc
 
         // Lấy nội dung của thông báo và thay thế tất cả các URL bằng chữ "tại đây"
         val urlRegex = "(https?://\\S+)".toRegex() // Biểu thức chính quy để tìm tất cả các URL
-        val content = announcement.content
+        val content = announcement.content.replace(Regex("[()]"), "") // Loại bỏ dấu ngoặc ( và )
         val spannableStringBuilder = SpannableStringBuilder(content)
 
         // Duyệt qua tất cả các URL trong chuỗi
@@ -63,7 +63,9 @@ class AnnouncementAdapter(private val announcements: List<Announcement>) : Recyc
 
         holder.contentTextView.text = spannableStringBuilder
         holder.contentTextView.movementMethod = LinkMovementMethod.getInstance() // Cho phép nhấp vào liên kết
+
     }
 
     override fun getItemCount() = announcements.size
+
 }

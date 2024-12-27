@@ -6,6 +6,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 
 // Đối tượng dữ liệu gửi lên API
@@ -15,6 +16,13 @@ data class LoginResponse(val status: String, val error: String? = null)
 
 
 interface ApiService {
+    @GET("/search")
+    fun searchAnnouncements(
+        @Query("query") query: String,
+        @Query("criteria") criteria: String,
+        @Query("tab") tab: String
+    ): Call<List<Announcement>>
+
     @POST("/login") // Endpoint để đăng nhập và lấy dữ liệu
     fun login(@Body request: LoginRequest): Call<LoginResponse>
 

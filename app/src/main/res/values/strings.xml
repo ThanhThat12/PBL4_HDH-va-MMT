@@ -1,4 +1,9 @@
 <resources>
+    <string-array name="search_criteria">
+        <item>Title</item>
+        <item>Content</item>
+        <item>Date</item>
+    </string-array>
     <string name="app_name">My Application</string>
     <string name="login_activity_title">Đăng Nhập</string>
     <string name="schedule_activity_title">Schedule</string>

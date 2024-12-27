@@ -16,5 +16,7 @@
     <color name="red">#A80926</color>
     <color name="colorDefault">#FFFFFF</color> <!-- Màu nền mặc định -->
     <color name="colorPressed">#DDDDDD</color> <!-- Màu nền khi nhấn -->
+    <color name="pink">#D75D65</color>
+    <color name="light_blue">#A5D6A7</color>
 
 </resources>

@@ -1,3 +1,4 @@
+
 <androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -21,7 +22,7 @@
 
         <!-- Header with Menu and Login buttons -->
 
-        <!-- Buttons and RecyclerView Section -->
+        <!-- Buttons Section -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="66dp"
@@ -42,16 +43,29 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+            <ImageButton
+                android:id="@+id/buttonLogout"
+                android:layout_width="74dp"
+                android:layout_height="53dp"
+                android:layout_marginEnd="16dp"
+                android:background="@color/white"
+                android:backgroundTint="@color/light_cyan"
+                android:contentDescription="@string/login_activity_title"
+                android:padding="8dp"
+                android:src="@drawable/logout_icon"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView1"
+        <!-- Fragment Container -->
+        <FrameLayout
+            android:id="@+id/fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="591dp"
-            android:layout_weight="1"
-            android:background="@drawable/building"
-            android:padding="8dp" />
+            android:background="@color/light_blue"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
 
         <LinearLayout
             android:layout_width="match_parent"
