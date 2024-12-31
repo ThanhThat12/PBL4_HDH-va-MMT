@@ -2,14 +2,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@drawable/gradient"
     android:padding="16dp">
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Lịch Thi"
         android:textSize="25sp"
-        android:textStyle="bold"
         android:textColor="@android:color/holo_red_light"
+        android:textStyle="bold"
         android:gravity="center"
         android:layout_gravity="center"/>
 
@@ -20,5 +21,5 @@
         android:layout_height="match_parent"
         android:layout_marginTop="8dp"
         android:padding="8dp"
-        android:background="@android:color/white" />
+        android:background="@drawable/gradient" />
 </LinearLayout>

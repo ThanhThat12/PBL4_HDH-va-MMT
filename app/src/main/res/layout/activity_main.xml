@@ -12,7 +12,9 @@
         android:layout_width="350dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:menu="@menu/nav_menu" />
+        app:menu="@menu/nav_menu"
+        android:background="@drawable/gradient"
+        app:headerLayout="@layout/nav_header" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,7 +24,7 @@
         <!-- Header with Menu and Login buttons -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="58dp"
+            android:layout_height="66dp"
             android:background="@color/light_cyan">
 
             <Button
@@ -62,6 +64,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:background="@android:color/white"
             android:padding="8dp">
 
             <androidx.cardview.widget.CardView

@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flasgger import Swagger
 import requests
 from bs4 import BeautifulSoup
-import time
+import mysql.connector
 from datetime import datetime
 
 app = Flask(__name__)
@@ -29,6 +29,31 @@ def get_current_semester():
 
     return f"{year_suffix}{semester_code}"
 
+# Hàm kết nối đến cơ sở dữ liệu
+def get_db_connection():
+    return mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='',
+        database='PBL4'
+    )
+# Hàm kiểm tra và lưu thông báo vào cơ sở dữ liệu
+def save_announcement(table_name, announcement):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Kiểm tra xem thông báo đã tồn tại chưa
+    cursor.execute(f"SELECT * FROM {table_name} WHERE title = %s AND date = %s", 
+                   (announcement['title'], announcement['date']))
+    existing_announcement = cursor.fetchone()
+    
+    if existing_announcement is None:  # Nếu chưa tồn tại, thêm thông báo mới
+        cursor.execute(f"INSERT INTO {table_name} (date, title, content) VALUES (%s, %s, %s)", 
+                       (announcement['date'], announcement['title'], announcement['content']))
+        conn.commit()
+    
+    conn.close()
+
 def extract_announcements(html):
     soup = BeautifulSoup(html, "html.parser")
     announcements = []
@@ -37,13 +62,29 @@ def extract_announcements(html):
     for announcement_div in soup.find_all(class_="tbBox"):
         date_element = announcement_div.select_one("div.tbBoxCaption b > span")
         date = date_element.get_text(strip=True).replace(":", "") if date_element else None
+
         # Lấy trường title
         span_elements = announcement_div.select("div.tbBoxCaption span")
         title = span_elements[1].get_text(strip=True) if len(span_elements) > 1 else None
 
-        # Lấy trường content
+        # Lấy nội dung thông báo và thay thế "tại đây" bằng liên kết
         content_element = announcement_div.select_one("div.tbBoxContent")
-        content = str(content_element) if content_element else None
+        if content_element:
+            # Lấy nội dung gốc
+            content_text = content_element.get_text(" ", strip=True)
+
+            # Thay thế các liên kết chứa "tại đây" bằng chính URL
+            for link in content_element.find_all("a", href=True):
+                href = link["href"]
+                link_text = link.get_text(strip=True)
+                if link_text == "tại đây":
+                    content_text = content_text.replace(link_text, f"({href})")
+                else:
+                    content_text = content_text.replace(link_text, f"{link_text} ({href})")
+
+            content = content_text
+        else:
+            content = None
 
         # Kiểm tra và thêm thông báo mới nếu chưa có trong danh sách
         if (date, title) not in seen_announcements:
@@ -56,9 +97,109 @@ def extract_announcements(html):
 
     return announcements
 
-# API 1: /tab0 - Không cần đăng nhập
+
+
+@app.route('/search', methods=['GET'])
+def search_announcements():
+    """
+    Search notifications by criteria: title, content, or date
+    ---
+    parameters:
+      - name: query
+        in: query
+        type: string
+        required: false
+        description: Từ khóa tìm kiếm
+      - name: criteria
+        in: query
+        type: string
+        required: false
+        description: Tiêu chí tìm kiếm (title, content, date)
+      - name: tab
+        in: query
+        type: string
+        required: true
+        description: Tab của thông báo (tab0 hoặc tab1)
+    responses:
+      200:
+        description: Danh sách thông báo phù hợp
+        examples:
+          application/json: [{"date": "10/12/2024", "title": "Thông báo quan trọng", "content": "Chi tiết ở đây"}]
+      400:
+        description: Lỗi nếu không có tiêu chí tìm kiếm hoặc tab không hợp lệ
+        examples:
+          application/json: {"status": "failed", "error": "Tab không hợp lệ"}
+    """
+     # Lấy các tham số tìm kiếm
+    query = request.args.get('query', '')
+    criteria = request.args.get('criteria', '')
+    tab = request.args.get('tab', '')
+
+    # Kiểm tra nếu thiếu tham số tab hoặc nếu tab không hợp lệ
+    if not tab:
+        return jsonify({"status": "error", "message": "Tab là bắt buộc"}), 400
+    if tab not in ["tab0", "tab1"]:
+        return jsonify({"status": "error", "message": "Tab không hợp lệ"}), 400
+
+    # Kiểm tra nếu thiếu tham số tiêu chí tìm kiếm
+    if not criteria or criteria not in ["title", "content", "date"]:
+        return jsonify({"status": "error", "message": "Tiêu chí tìm kiếm không hợp lệ"}), 400
+
+    # Xác định bảng dữ liệu dựa vào tab
+    table = "tab0_announcements" if tab == "tab0" else "tab1_announcements"
+    
+    # Tạo kết nối cơ sở dữ liệu
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        # Nếu tìm kiếm theo ngày, kiểm tra và chuẩn bị chuỗi truy vấn
+        if criteria == 'date':
+            if not query:
+                return jsonify({"status": "error", "message": "Giá trị tìm kiếm ngày không được để trống"}), 400
+            
+            # Kiểm tra định dạng ngày nhập vào
+            if not validate_date_format(query, '%d/%m/%Y'):
+                return jsonify({"status": "error", "message": "Định dạng ngày không hợp lệ, phải là dd/mm/yyyy"}), 400
+
+            # Tạo truy vấn chính xác (tìm kiếm chính xác ngày)
+            query_str = f"SELECT * FROM {table} WHERE {criteria} = %s"
+            cursor.execute(query_str, (query,))
+        else:
+            # Tìm kiếm theo tiêu chí khác (tiêu đề, nội dung)
+            query_str = f"SELECT * FROM {table} WHERE {criteria} LIKE %s"
+            cursor.execute(query_str, (f"%{query}%",))
+
+        # Lấy kết quả
+        results = cursor.fetchall()
+
+        if not results:
+            return jsonify({"status": "error", "message": "Không tìm thấy thông báo phù hợp"}), 404
+
+        conn.close()
+        return jsonify(results), 200
+
+    except mysql.connector.Error as err:
+        return jsonify({"status": "error", "message": f"Lỗi cơ sở dữ liệu: {str(err)}"}), 500
+
+    finally:
+        if conn.is_connected():
+            conn.close()
+
+def validate_date_format(date_str, format):
+    """
+    Kiểm tra chuỗi ngày có đúng định dạng không.
+    Trả về True nếu đúng định dạng, ngược lại False.
+    """
+    try:
+        datetime.strptime(date_str, format)
+        return True
+    except ValueError:
+        return False
+
+# API: /tab0 - Lấy thông báo không cần đăng nhập
 @app.route('/tab0', methods=['GET'])
-def announcement_general():
+def announcement_general_tab0():
     """
     Get general announcements from Tab 0
     ---
@@ -77,7 +218,7 @@ def announcement_general():
         'E': 'CTRTBSV',
         'PAGETB': '1',
         'COL': 'TieuDe',
-        'NAME': '', 
+        'NAME': '',
         'TAB': 0
     }
     response = session.post(
@@ -89,12 +230,17 @@ def announcement_general():
     if response.status_code != 200:
         return jsonify({"status": "failed", "error": "Unexpected status code"}), 401
 
-    announcements_general = extract_announcements(response.text)
-    return jsonify(announcements_general), 200
+    announcements = extract_announcements(response.text)
+    
+    # Lưu thông báo vào bảng tab0_announcements
+    for announcement in announcements:
+        save_announcement("tab0_announcements", announcement)
+    
+    return jsonify(announcements), 200
 
-# API 2: /tab1 - Không cần đăng nhập
+# API: /tab1 - Lấy thông báo từ tab1
 @app.route('/tab1', methods=['GET'])
-def announcement_module():
+def announcement_general_tab1():
     """
     Get module-specific announcements from Tab 1
     ---
@@ -113,7 +259,7 @@ def announcement_module():
         'E': 'CTRTBGV',
         'PAGETB': '1',
         'COL': 'TieuDe',
-        'NAME': '', 
+        'NAME': '',
         'TAB': 1
     }
     response = session.post(
@@ -121,15 +267,17 @@ def announcement_module():
         data=payload,
         allow_redirects=True
     )
-
+    
     if response.status_code != 200:
         return jsonify({"status": "failed", "error": "Unexpected status code"}), 401
-    
+
     announcements = extract_announcements(response.text)
+    
+    # Lưu thông báo vào bảng tab1_announcements
+    for announcement in announcements:
+        save_announcement("tab1_announcements", announcement)
+    
     return jsonify(announcements), 200
-        
-# Biến toàn cục để lưu session
-session = None
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -137,16 +285,11 @@ def login():
     Login to the website and get the session
     ---
     parameters:
-      - name: username
+      - name: username,password
         in: body
         type: string
         required: true
-        description: The username for login
-      - name: password
-        in: body
-        type: string
-        required: true
-        description: The password for login
+        description: The username password for login
     responses:
       200:
         description: Login successful
@@ -592,5 +735,5 @@ def tuition():
 
     # Trả về dữ liệu học phí dưới dạng JSON
     return jsonify(tuition_info), 200
-if __name__== '__main_':
-    app.run(port=5000,debug=True)
+if __name__== '__main__':
+    app.run(host='0.0.0.0',port=5000,debug=True)

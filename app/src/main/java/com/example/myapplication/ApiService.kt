@@ -36,7 +36,7 @@ interface ApiService {
     fun getPersonalInfo(): Call<PersonalInfoResponse>
 
     @GET("/page_lh_ngay")
-    fun getSchedule(): Call<List<Schedule>>
+    fun getScheduleByDate(@Query("ngay") date: String): Call<List<Schedule>>
 
     @GET("/exam_schedule/class_schedule")
     fun getLichHoc(): Call<LichHocResponse>

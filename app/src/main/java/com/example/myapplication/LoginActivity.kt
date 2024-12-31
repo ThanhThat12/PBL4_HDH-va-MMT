@@ -51,7 +51,7 @@ class LoginActivity : AppCompatActivity() {
                     finish()
                 } else {
                     // Thông báo khi đăng nhập không thành công
-                    Toast.makeText(this@LoginActivity, "Đăng nhập thất bại", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, "Vui lòng kiểm tra lại tài khoản và mật khẩu", Toast.LENGTH_SHORT).show()
                 }
             }
 

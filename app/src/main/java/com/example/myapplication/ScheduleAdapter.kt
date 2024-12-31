@@ -28,15 +28,16 @@ class ScheduleAdapter(private val scheduleList: List<Schedule>) :
 
     override fun onBindViewHolder(holder: ScheduleViewHolder, position: Int) {
         val schedule = scheduleList[position]
-        holder.stt.text = schedule.STT
-        holder.ma.text = schedule.Ma
-        holder.tenLopHocPhan.text = schedule.TenLopHocPhan
-        holder.giangVien.text = schedule.GiangVien
-        holder.thoiKhoaBieu.text = schedule.ThoiKhoaBieu
-        holder.ngayHoc.text = schedule.NgayHoc
-        holder.hocOnline.text = schedule.HocOnline
-        holder.ghiChu.text = schedule.GhiChu
+        holder.stt.text = "STT: ${schedule.STT}"
+        holder.ma.text = "Mã: ${schedule.Ma}"
+        holder.tenLopHocPhan.text = "Tên LHP: ${schedule.TenLopHocPhan}"
+        holder.giangVien.text = "Giảng viên: ${schedule.GiangVien}"
+        holder.thoiKhoaBieu.text = "Thời khóa biểu: ${schedule.ThoiKhoaBieu}"
+        holder.ngayHoc.text = "Ngày học: ${schedule.NgayHoc}"
+        holder.hocOnline.text = "Học online: ${schedule.HocOnline}"
+        holder.ghiChu.text = "Ghi chú: ${schedule.GhiChu}"
     }
+
 
     override fun getItemCount(): Int {
         return scheduleList.size

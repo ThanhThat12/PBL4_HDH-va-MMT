@@ -1,21 +1,12 @@
 from flask import Flask, request, jsonify
-from flasgger import Swagger
 import requests
 from bs4 import BeautifulSoup
 import mysql.connector
 from datetime import datetime
 
 app = Flask(__name__)
-# Cấu hình Swagger UI cho ứng dụng Flask
-swagger = Swagger(app)
 def get_current_semester():
-    """
-    Lấy mã học kỳ hiện tại theo định dạng:
-    - 24: Hai số cuối của năm hiện tại.
-    - 10: Kỳ 1 (tháng 8-12).
-    - 20: Kỳ 2 (tháng 1-5).
-    - 21: Kỳ hè (tháng 6-7).
-    """
+  
     now = datetime.now()
     year_suffix = now.year % 100
     month = now.month
@@ -101,35 +92,6 @@ def extract_announcements(html):
 
 @app.route('/search', methods=['GET'])
 def search_announcements():
-    """
-    Tìm kiếm thông báo theo tiêu chí: title, content, hoặc date.
-    ---
-    parameters:
-      - name: query
-        in: query
-        type: string
-        required: false
-        description: Từ khóa tìm kiếm
-      - name: criteria
-        in: query
-        type: string
-        required: false
-        description: Tiêu chí tìm kiếm (title, content, date)
-      - name: tab
-        in: query
-        type: string
-        required: true
-        description: Tab của thông báo (tab0 hoặc tab1)
-    responses:
-      200:
-        description: Danh sách thông báo phù hợp
-        examples:
-          application/json: [{"date": "10/12/2024", "title": "Thông báo quan trọng", "content": "Chi tiết ở đây"}]
-      400:
-        description: Lỗi nếu không có tiêu chí tìm kiếm hoặc tab không hợp lệ
-        examples:
-          application/json: {"status": "failed", "error": "Tab không hợp lệ"}
-    """
      # Lấy các tham số tìm kiếm
     query = request.args.get('query', '')
     criteria = request.args.get('criteria', '')
@@ -187,10 +149,6 @@ def search_announcements():
             conn.close()
 
 def validate_date_format(date_str, format):
-    """
-    Kiểm tra chuỗi ngày có đúng định dạng không.
-    Trả về True nếu đúng định dạng, ngược lại False.
-    """
     try:
         datetime.strptime(date_str, format)
         return True
@@ -200,19 +158,6 @@ def validate_date_format(date_str, format):
 # API: /tab0 - Lấy thông báo không cần đăng nhập
 @app.route('/tab0', methods=['GET'])
 def announcement_general_tab0():
-    """
-    Get general announcements from Tab 0
-    ---
-    responses:
-      200:
-        description: A list of general announcements
-        examples:
-          application/json: [{ "date":"Ngày Thông báo", "title": "Thông báo 1", "content": "Nội dung thông báo 1"}]
-      401:
-        description: Error when fetching data
-        examples:
-          application/json: {"status": "failed", "error": "Unexpected status code"}
-    """
     session = requests.Session()
     payload = {
         'E': 'CTRTBSV',
@@ -241,19 +186,6 @@ def announcement_general_tab0():
 # API: /tab1 - Lấy thông báo từ tab1
 @app.route('/tab1', methods=['GET'])
 def announcement_general_tab1():
-    """
-    Get module-specific announcements from Tab 1
-    ---
-    responses:
-      200:
-        description: A list of module-specific announcements
-        examples:
-          application/json: [{"date":"Ngày Thông báo", "title": "Thông báo 1", "content": "Nội dung thông báo 1"}]
-      401:
-        description: Error when fetching data
-        examples:
-          application/json: {"status": "failed", "error": "Unexpected status code"}
-    """
     session = requests.Session()
     payload = {
         'E': 'CTRTBGV',
@@ -281,25 +213,6 @@ def announcement_general_tab1():
 
 @app.route('/login', methods=['POST'])
 def login():
-    """
-    Login to the website and get the session
-    ---
-    parameters:
-      - name: username,password
-        in: body
-        type: string
-        required: true
-        description: The username password for login
-    responses:
-      200:
-        description: Login successful
-        examples:
-          application/json: {"status": "success"}
-      401:
-        description: Login failed
-        examples:
-          application/json: {"status": "failed"}
-    """
     global session 
     
     username = request.json.get("username")
@@ -340,23 +253,6 @@ def login():
     
 @app.route('/personal_info', methods=['GET'])
 def personal_info():
-    """
-    Get Personal infor
-    ---
-    responses:
-      200:
-        description: Personal info retrieved successfully
-        examples:
-          application/json: {"status": "success", "data": {"HoTen": "Nguyen Thanh That", "NgaySinh": "01/01/1995", "GioiTinh": "Nam", "Email": "that1234@gmail.com"}}
-      401:
-        description: User is not logged in
-        examples:
-          application/json: {"status": "failed", "error": "User is not logged in"}
-      404:
-        description: Personal info not found
-        examples:
-          application/json: {"status": "failed", "error": "Personal info not found"}
-    """
     global session
     
     # Kiểm tra đăng nhập
@@ -392,123 +288,66 @@ def personal_info():
 
 @app.route('/page_lh_ngay', methods=['GET'])
 def page_lh_ngay():
-    """
-    Get day scheduled
-    ---
-    responses:
-      200:
-        description: Lịch học ngày hôm nay
-        schema:
-          type: array
-          items:
-            type: object
-            properties:
-              STT:
-                type: string
-              Ma:
-                type: string
-              TenLopHocPhan:
-                type: string
-              GiangVien:
-                type: string
-              ThoiKhoaBieu:
-                type: string
-              NgayHoc:
-                type: string
-              HocOnline:
-                type: string
-              GhiChu:
-                type: string
-      401:
-        description: Người dùng chưa đăng nhập
-        examples:
-          application/json: {"status": "failed", "error": "Người dùng chưa đăng nhập"}
-      500:
-        description: Lỗi không thể lấy lịch học
-        examples:
-          application/json: {"status": "failed", "error": "Không thể lấy lịch học"}
-    """
     global session  # Declare session as global
-    
+
     # Check if the user is logged in
     if session is None:
         return jsonify({"status": "failed", "error": "Người dùng chưa đăng nhập"}), 401
 
-    # Tạo URL AJAX
-    today = datetime.today().strftime('%d/%m/%Y')
-    ajax_url = f"http://sv.dut.udn.vn/WebAjax/evLopHP_Load.aspx?E=LHTNLOAD&NF={today}"
-    
+    # Lấy ngày từ query parameter
+    ngay = request.args.get('ngay')  # Lấy tham số 'ngay' từ URL
+    if not ngay:
+        # Nếu không có tham số 'ngay', mặc định dùng ngày hiện tại
+        ngay = datetime.today().strftime('%d/%m/%Y')
+    else:
+        # Kiểm tra nếu ngày không đúng định dạng 'dd/mm/yyyy'
+        try:
+            datetime.strptime(ngay, '%d/%m/%Y')
+        except ValueError:
+            return jsonify({"status": "failed", "error": "Định dạng ngày không hợp lệ, cần dạng dd/mm/yyyy"}), 400
+
+    # Tạo URL AJAX với ngày được chỉ định
+    ajax_url = f"http://sv.dut.udn.vn/WebAjax/evLopHP_Load.aspx?E=LHTNLOAD&NF={ngay}"
+
     # Gửi yêu cầu AJAX
     get_schedule = session.get(ajax_url)
-    
+
     # Kiểm tra phản hồi của yêu cầu AJAX
     if get_schedule.status_code != 200:
         return jsonify({"status": "failed", "error": "Không thể lấy lịch học"}), 500
 
     # Phân tích HTML content từ phản hồi AJAX
     soup = BeautifulSoup(get_schedule.text, 'html.parser')
-    
+
     # Tìm bảng với ID LHTN_Grid
     table = soup.find('table', {'id': 'LHTN_Grid'})
     lich_hoc = []
 
     # Lặp qua các hàng trong bảng, bỏ qua tiêu đề
-    for row in table.find_all('tr')[1:]:
-        cols = row.find_all('td')
-        if len(cols) > 0:  # Kiểm tra nếu có dữ liệu trong hàng
-            lich_hoc.append({
-                'STT': cols[0].text.strip(),
-                'Ma': cols[1].text.strip(),
-                'TenLopHocPhan': cols[2].text.strip(),
-                'GiangVien': cols[3].text.strip(),
-                'ThoiKhoaBieu': cols[4].text.strip(),
-                'NgayHoc': cols[5].text.strip(),
-                'HocOnline': cols[6].text.strip(),
-                'GhiChu': cols[7].text.strip() if len(cols) > 7 else None
-            })
-     # Kiểm tra nếu không có dữ liệu lịch học
+    if table:
+        for row in table.find_all('tr')[1:]:
+            cols = row.find_all('td')
+            if len(cols) > 0:  # Kiểm tra nếu có dữ liệu trong hàng
+                lich_hoc.append({
+                    'STT': cols[0].text.strip(),
+                    'Ma': cols[1].text.strip(),
+                    'TenLopHocPhan': cols[2].text.strip(),
+                    'GiangVien': cols[3].text.strip(),
+                    'ThoiKhoaBieu': cols[4].text.strip(),
+                    'NgayHoc': cols[5].text.strip(),
+                    'HocOnline': cols[6].text.strip(),
+                    'GhiChu': cols[7].text.strip() if len(cols) > 7 else None
+                })
+
+    # Kiểm tra nếu không có dữ liệu lịch học
     if not lich_hoc:
-        return jsonify({"status": "failed", "error": "Không có lịch học nào cho ngày hôm nay"}), 404
+        return jsonify({"status": "failed", "error": f"Không có lịch học nào cho ngày {ngay}"}), 404
+
     return jsonify(lich_hoc), 200
+
 @app.route('/exam_schedule/class_schedule', methods=['GET'])
 def class_schedule():
-    """
-    Get semester Scheduled
-    ---
-    responses:
-      200:
-        description: Lịch học theo mã học kỳ
-        schema:
-          type: object
-          properties:
-            Lịch Học:
-              type: array
-              items:
-                type: object
-                properties:
-                  TT:
-                    type: string
-                  MaLHP:
-                    type: string
-                  TenLHP:
-                    type: string
-                  SoTC:
-                    type: string
-                  GiangVien:
-                    type: string
-                  TKB:
-                    type: string
-                  TuanHoc:
-                    type: string
-      401:
-        description: Người dùng chưa đăng nhập
-        examples:
-          application/json: {"status": "failed", "error": "Người dùng chưa đăng nhập"}
-      500:
-        description: Lỗi không thể lấy lịch học
-        examples:
-          application/json: {"status": "failed", "error": "Không thể lấy lịch học"}
-    """
+   
     global session
     
     if session is None:
@@ -547,41 +386,6 @@ def class_schedule():
 
 @app.route('/exam_schedule/exam_schedule', methods=['GET'])
 def exam_schedule_details():
-    """
-    Get exam scheduled
-    ---
-    responses:
-      200:
-        description: Lịch thi theo mã học kỳ
-        schema:
-          type: object
-          properties:
-            Lịch Thi:
-              type: array
-              items:
-                type: object
-                properties:
-                  TT:
-                    type: string
-                  MaLHP:
-                    type: string
-                  TenLHP:
-                    type: string
-                  NhomThi:
-                    type: string
-                  ThiChung:
-                    type: string
-                  LichThi:
-                    type: string
-      401:
-        description: Người dùng chưa đăng nhập
-        examples:
-          application/json: {"status": "failed", "error": "Người dùng chưa đăng nhập"}
-      500:
-        description: Lỗi không thể lấy lịch thi
-        examples:
-          application/json: {"status": "failed", "error": "Không thể lấy lịch thi"}
-    """
     global session
     
     if session is None:
@@ -618,43 +422,6 @@ def exam_schedule_details():
 
 @app.route('/tuition', methods=['GET'])
 def tuition():
-    """
-    Get Tutition
-    ---
-    responses:
-      200:
-        description: Danh sách học phí và tổng tín chỉ của học kỳ hiện tại
-        schema:
-          type: object
-          properties:
-            STT:
-              type: string
-            MaHP:
-              type: string
-            TenHP:
-              type: string
-            SoTC:
-              type: string
-            CLC:
-              type: string
-            HOCPHI:
-              type: string
-            TONGCONG:
-              type: object
-              properties:
-                TONGTC:
-                  type: integer
-                TONGHOCPHI:
-                  type: string
-      401:
-        description: Người dùng chưa đăng nhập
-        examples:
-          application/json: {"status": "failed", "error": "Người dùng chưa đăng nhập"}
-      500:
-        description: Lỗi không thể lấy thông tin học phí
-        examples:
-          application/json: {"status": "failed", "error": "Không thể lấy học phí"}
-    """
     # Kiểm tra nếu người dùng đã đăng nhập
     if session is None:
         return jsonify({"status": "failed", "error": "Người dùng chưa đăng nhập"}), 401

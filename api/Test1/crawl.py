@@ -9,15 +9,14 @@ from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 
-# Khởi tạo Flask app
+
 app = Flask(__name__)
 
-# Hàm đăng nhập và trả về trình duyệt đã đăng nhập thành công
 def login_to_website(username, password):
     chrome_options = Options()
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--headless")  # Thêm chế độ headless để không hiển thị trình duyệt
+    chrome_options.add_argument("--headless")  
     service = Service(ChromeDriverManager().install())
 
     driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -35,11 +34,8 @@ def login_to_website(username, password):
         login_button = wait.until(EC.element_to_be_clickable((By.ID, "QLTH_btnLogin")))
         login_button.click()
 
-        # Đợi cho trang tải xong và kiểm tra URL
         wait.until(EC.url_changes('http://sv.dut.udn.vn/PageDangNhap.aspx'))
-
-        # Kiểm tra nếu URL đã thay đổi thành URL trang chính
-        if driver.current_url == 'http://sv.dut.udn.vn/PageCaNhan.aspx':  # Thay đổi thành URL trang chính
+        if driver.current_url == 'http://sv.dut.udn.vn/PageCaNhan.aspx':  
             return driver
         else:
             raise Exception("Đăng nhập không thành công!")
@@ -47,7 +43,6 @@ def login_to_website(username, password):
         driver.quit()
         raise Exception(f"Lỗi khi đăng nhập: {str(e)}")
 
-# Hàm lấy lịch học
 def get_schedule(driver):
     wait = WebDriverWait(driver, 10)
     menu_personal = wait.until(EC.visibility_of_element_located((By.ID, "lPaCANHAN")))
@@ -76,7 +71,6 @@ def get_schedule(driver):
 
     return schedule_data
 
-# Hàm lấy lịch khảo sát ý kiến
 def get_survey_schedule(driver):
     wait = WebDriverWait(driver, 10)
     survey_menu = wait.until(EC.visibility_of_element_located((By.ID, "lPaCANHAN")))
@@ -105,7 +99,6 @@ def get_survey_schedule(driver):
 
     return survey_data
 
-# API tích hợp đăng nhập và lấy dữ liệu
 @app.route('/get_all_data', methods=['POST'])
 def get_all_data():
     data = request.json
@@ -113,16 +106,9 @@ def get_all_data():
     password = data.get('password')
 
     try:
-        # Đăng nhập vào trang và trả về trình duyệt đã đăng nhập
         driver = login_to_website(username, password)
-
-        # Lấy dữ liệu lịch học
         schedule_data = get_schedule(driver)
-
-        # Lấy dữ liệu lịch khảo sát ý kiến
         survey_data = get_survey_schedule(driver)
-
-        # Trả về thông tin lịch học và lịch khảo sát ý kiến
         return jsonify({
             "success": True,
             "username": username,
@@ -135,7 +121,6 @@ def get_all_data():
 
     finally:
         driver.quit()
-
-# Chạy ứng dụng Flask
+        
 if __name__ == '__main__':
     app.run(debug=True) 

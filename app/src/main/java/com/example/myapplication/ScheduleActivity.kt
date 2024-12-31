@@ -6,10 +6,13 @@ import android.content.res.ColorStateList
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
-
+import com.google.android.material.navigation.NavigationView
 
 class ScheduleActivity : AppCompatActivity() {
 
@@ -19,6 +22,7 @@ class ScheduleActivity : AppCompatActivity() {
     private lateinit var btnLichThi: Button
     private lateinit var btnHocPhi: Button
     private lateinit var btnLogout: ImageButton
+    private lateinit var drawerLayout: DrawerLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,6 +36,36 @@ class ScheduleActivity : AppCompatActivity() {
         btnHocPhi = findViewById(R.id.btnhocphi)
         btnLogout = findViewById(R.id.buttonLogout)
 
+        drawerLayout = findViewById(R.id.drawer_layout1)
+        // Tạo toggle cho Drawer
+        val toggle = ActionBarDrawerToggle(
+            this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close
+        )
+        drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+        // Khởi tạo nút Menu
+        val buttonMenu: Button = findViewById(R.id.buttonMenu1)
+        buttonMenu.setOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.START) // Mở drawer từ bên trái
+        }
+        // Khởi tạo NavigationView
+        val navigationView: NavigationView = findViewById(R.id.nav_view1)
+        // Thiết lập listener khi chọn mục trong NavigationView
+        navigationView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_home -> {
+                    // Handle Home click
+                }
+                R.id.nav_notice -> {
+                    // Handle Emergency click
+                }
+                R.id.nav_about -> {
+                    // Handle About Us click
+                }
+            }
+            drawerLayout.closeDrawers()
+            true
+        }
         val buttons = listOf(btnPersonal, btnLhn, btnLichHoc, btnLichThi, btnHocPhi)
 
         // Set default fragment

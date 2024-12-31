@@ -14,13 +14,11 @@ from selenium.common.exceptions import WebDriverException
 
 app = Flask(__name__)
 
-# Global driver variable for re-use
-driver = None
 
-# Function to create and reuse a Selenium WebDriver
+driver = None
 def create_driver():
     options = webdriver.ChromeOptions()
-    options.add_argument("--headless")  # Optional: Run in headless mode
+    options.add_argument("--headless")  
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
@@ -34,41 +32,34 @@ def is_logged_in(driver):
         print(f"Error checking login status: {str(e)}")
         return False
 
-# Function to quit and restart the driver
 def restart_driver():
     global driver
     if driver is not None:
         try:
-            driver.quit()  # Close existing session
+            driver.quit()  
         except Exception as e:
             print(f"Error when quitting the driver: {str(e)}")
-    driver = create_driver()  # Recreate the driver
-
-# Function to log in to the website
+    driver = create_driver()  
 def login_to_website(username, password):
     global driver
-    driver = create_driver()  # Ensure driver is created
+    driver = create_driver()  
 
     try:
         driver.get('http://sv.dut.udn.vn/PageDangNhap.aspx')
-
-        # Clear cookies before login
         driver.delete_all_cookies()
 
         wait = WebDriverWait(driver, 10)
         username_field = wait.until(EC.presence_of_element_located((By.ID, "DN_txtAcc")))
         password_field = wait.until(EC.presence_of_element_located((By.ID, "DN_txtPass")))
 
-        username_field.clear()  # Clear any pre-filled data
-        password_field.clear()  # Clear any pre-filled data
+        username_field.clear()  
+        password_field.clear()  
 
         username_field.send_keys(username)
         password_field.send_keys(password)
 
         login_button = wait.until(EC.element_to_be_clickable((By.ID, "QLTH_btnLogin")))
         login_button.click()
-
-        # Wait for the page to load and verify if the login was successful
         wait.until(EC.url_changes('http://sv.dut.udn.vn/PageDangNhap.aspx'))
 
         if is_logged_in(driver):
@@ -79,10 +70,9 @@ def login_to_website(username, password):
     
     except Exception as e:
         print(f"Login error: {str(e)}")
-        restart_driver()  # Restart the driver on failure
+        restart_driver()  
         raise
 
-# Function to extract announcements from a tab
 def extract_announcements(soup, tab_id):
     tab_content = soup.find(id=tab_id)
     announcements_list = []
@@ -96,8 +86,6 @@ def extract_announcements(soup, tab_id):
                 spans = caption.find_all("span")
                 date = spans[0].text.strip() if len(spans) >= 1 else "No date"
                 title = spans[1].text.strip() if len(spans) >= 2 else "No title"
-
-                # Process <a> tags in content
                 for a_tag in content.find_all("a"):
                     href = a_tag.get("href", "")
                     a_tag.string = f"{a_tag.text.strip()} ({href})"
@@ -112,8 +100,6 @@ def extract_announcements(soup, tab_id):
     else:
         print(f"Tab with id: {tab_id} not found")
     return announcements_list
-
-# Function to get announcements from a specific tab
 def get_tab_announcements(tab_id):
     global driver
     driver.get('http://sv.dut.udn.vn/')
@@ -130,16 +116,12 @@ def get_tab_announcements(tab_id):
     except Exception as e:
         print(f"Error getting announcements from tab {tab_id}: {e}")
         return []
-
-# Function to periodically update announcements cache
 def update_announcements_cache():
     while True:
         print("Updating announcements...")
         app.config['announcements_tab0'] = get_tab_announcements("tabs_PubTB-divT0")
         app.config['announcements_tab1'] = get_tab_announcements("tabs_PubTB-divT1")
-        time.sleep(300)  # Update every 5 minutes
-
-# Function to get schedule
+        time.sleep(300)  
 def get_schedule(driver):
     wait = WebDriverWait(driver, 10)
     menu_personal = wait.until(EC.visibility_of_element_located((By.ID, "lPaCANHAN")))
@@ -165,8 +147,6 @@ def get_schedule(driver):
     else:
         raise Exception("Schedule table not found in HTML.")
     return schedule_data
-
-# Function to get survey schedule
 def get_survey_schedule(driver):
     wait = WebDriverWait(driver, 10)
     survey_menu = wait.until(EC.visibility_of_element_located((By.ID, "lPaCANHAN")))
@@ -193,30 +173,23 @@ def get_survey_schedule(driver):
         raise Exception("Survey schedule table not found in HTML.")
     return survey_data
 
-# API to fetch schedule and survey schedule
 @app.route('/get_all_data', methods=['POST'])
 def get_all_data():
     data = request.json
     username = data.get('username')
     password = data.get('password')
 
-    global driver  # Ensure using the global driver variable
+    global driver  
 
     try:
-        # Log in to the website and return the logged-in driver
-        driver = login_to_website(username, password)
 
-        # Check if the driver is active
+        driver = login_to_website(username, password)
         if driver is None or not is_logged_in(driver):
             raise Exception("Failed to log in or driver is not initialized.")
 
-        # Get schedule data
         schedule_data = get_schedule(driver)
 
-        # Get survey data
         survey_data = get_survey_schedule(driver)
-
-        # Return schedule and survey data
         return jsonify({
             "success": True,
             "username": username,
@@ -230,19 +203,16 @@ def get_all_data():
 
     finally:
         if driver is not None:
-            driver.quit()  # Ensure the driver is cleaned up
+            driver.quit()  
 
-# API to get announcements from tab 0
 @app.route('/tab0', methods=['GET'])
 def get_announcements_tab0():
     return jsonify(app.config.get('announcements_tab0', []))
 
-# API to get announcements from tab 1
 @app.route('/tab1', methods=['GET'])
 def get_announcements_tab1():
     return jsonify(app.config.get('announcements_tab1', []))
 
-# Start a thread to update announcements cache
 if __name__ == '__main__':
     threading.Thread(target=update_announcements_cache, daemon=True).start()
     app.run(debug=True, port=5000)

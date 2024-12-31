@@ -2,14 +2,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@android:color/background_light">
+    android:background="@drawable/gradient"
+    android:padding="16dp">
 
     <!-- Title -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Trang Lịch Học"
+        android:text="Lịch Học Trong Ngày"
         android:textSize="25sp"
         android:textStyle="bold"
         android:textColor="@android:color/holo_red_light"
@@ -18,15 +18,21 @@
         android:paddingBottom="12dp" />
 
     <!-- CalendarView -->
-    <CalendarView
-        android:id="@+id/calendarView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:background="@android:color/white"
-        android:elevation="4dp" />
+    <!-- EditText for Date Input -->
 
     <!-- RecyclerView for Schedule -->
+    <EditText
+        android:id="@+id/editTextDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:focusable="false"
+        android:background="@android:color/white"
+        android:drawableEnd="@android:drawable/ic_menu_my_calendar"
+        android:elevation="4dp"
+        android:hint="(dd/MM/yyyy)"
+        android:padding="12dp" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView1"
         android:layout_width="match_parent"
@@ -34,7 +40,7 @@
         android:layout_weight="1"
         android:layout_marginTop="8dp"
         android:padding="8dp"
-        android:background="@android:color/white"
+        android:background="@drawable/gradient"
         android:clipToPadding="false"
         android:scrollbars="vertical" />
 

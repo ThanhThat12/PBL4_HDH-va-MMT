@@ -54,16 +54,18 @@ class MainActivity : AppCompatActivity() {
         // Thiết lập listener khi chọn mục trong NavigationView
         navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.nav_calendar -> {
-                    Log.d("MainActivity", "Calendar selected")
-                    true
+                R.id.nav_home -> {
+                    // Handle Home click
                 }
-                R.id.nav_contacts -> {
-                    Log.d("MainActivity", "Contacts selected")
-                    true
+                R.id.nav_notice -> {
+                    // Handle Emergency click
                 }
-                else -> false
+                R.id.nav_about -> {
+                    // Handle About Us click
+                }
             }
+            drawerLayout.closeDrawers()
+            true
         }
         val searchButton: Button = findViewById(R.id.searchButton)
         searchButton.setOnClickListener {

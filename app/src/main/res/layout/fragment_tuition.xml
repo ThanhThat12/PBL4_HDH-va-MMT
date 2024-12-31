@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@drawable/gradient"
     android:padding="16dp">
 
     <!-- Tiêu đề chính -->
@@ -21,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="8dp"
-        android:background="#D3D3D3">
+        android:background="@color/light_cyan">
 
         <TableRow
             android:layout_width="match_parent"
@@ -77,8 +78,8 @@
 
     <!-- Danh sách RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
+        android:background="@drawable/gradient"
         android:id="@+id/recyclerView1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/white" />
+        android:layout_height="match_parent" />
 </LinearLayout>

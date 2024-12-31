@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
-# Thông tin đăng nhập
 LOGIN_URL = 'http://sv.dut.udn.vn/PageDangNhap.aspx'
 HEADERS = {
     'Content-Type': 'application/x-www-form-urlencoded'
@@ -15,14 +14,11 @@ def login():
     data = request.json
     username = data.get('102220253')
     password = data.get('that120704')
-
-    # Thực hiện đăng nhập
     login_data = {'DN_txtAcc': username, 'DN_txtPass': password}
     session = requests.Session()
     response = session.post(LOGIN_URL, data=login_data, headers=HEADERS)
 
     if response.ok:
-        # Xử lý dữ liệu cá nhân sau khi đăng nhập
         response = session.get('http://sv.dut.udn.vn/PageLichHoc.aspx')
         soup = BeautifulSoup(response.text, 'html.parser')
         schedule_html = soup.find(id='LHTN_divList').prettify()

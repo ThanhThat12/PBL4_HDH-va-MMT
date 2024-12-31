@@ -9,8 +9,6 @@ def get_announcements():
     url = 'http://sv.dut.udn.vn/'
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-
-    # Trích xuất thông báo từ các tab
     announcements = []
     tab_ids = ["tabs_PubTB-divT0", "tabs_PubTB-divT1"]
     
