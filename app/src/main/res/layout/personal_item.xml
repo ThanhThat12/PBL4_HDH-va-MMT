@@ -1,0 +1,81 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp"
+    android:elevation="6dp"
+    android:clipToPadding="false">
+
+    <!-- Họ và tên -->
+    <TextView
+        android:id="@+id/hoten"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Họ và tên: Nguyễn Văn A"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_blue_dark"
+
+        android:drawablePadding="8dp" />
+
+    <!-- Ngày sinh -->
+    <TextView
+        android:id="@+id/ngaysinh"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ngày sinh: 01/01/2000"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="4dp"
+
+        android:drawablePadding="8dp" />
+
+    <!-- Giới tính -->
+    <TextView
+        android:id="@+id/gioitinh"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Giới tính: Nam"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="4dp"
+
+        android:drawablePadding="8dp" />
+
+    <!-- Ngành học -->
+    <TextView
+        android:id="@+id/nganhhoc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ngành học: Công nghệ thông tin"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="4dp"
+
+        android:drawablePadding="8dp" />
+
+    <!-- Email -->
+    <TextView
+        android:id="@+id/email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Email: example@student.com"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="4dp"
+
+        android:drawablePadding="8dp" />
+
+    <!-- Chương trình đào tạo -->
+    <TextView
+        android:id="@+id/ctdt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CTĐT: Kỹ sư phần mềm"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="4dp"
+
+        android:drawablePadding="8dp" />
+</LinearLayout>
