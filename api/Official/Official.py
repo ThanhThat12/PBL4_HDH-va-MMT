@@ -54,6 +54,7 @@ def extract_announcements(html):
     seen_announcements = set()  
 
     for announcement_div in soup.find_all(class_="tbBox"):
+        # lấy trường datedate
         date_element = announcement_div.select_one("div.tbBoxCaption b > span")
         date = date_element.get_text(strip=True).replace(":", "") if date_element else None
 
