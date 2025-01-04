@@ -104,8 +104,8 @@ class MainActivity : AppCompatActivity() {
 
         // Khởi tạo Retrofit với URL cơ bản
         val retrofit = Retrofit.Builder()
-//            .baseUrl("http://192.168.1.11:5000/")
-            .baseUrl("http://10.0.2.2:5000/")// Localhost cho trình giả lập Android
+            .baseUrl("http://192.168.16.179:5000/")
+//            .baseUrl("http://10.0.2.2:5000/")// Localhost cho trình giả lập Android
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

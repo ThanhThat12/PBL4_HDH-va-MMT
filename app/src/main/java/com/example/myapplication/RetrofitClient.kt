@@ -7,8 +7,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:5000/"  // Địa chỉ của API
-
+//    private const val BASE_URL = "http://10.0.2.2:5000/"  // Địa chỉ của API
+    private const val BASE_URL = "http://192.168.16.179:5000/"
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
